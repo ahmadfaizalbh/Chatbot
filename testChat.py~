@@ -7,7 +7,7 @@ pairs = (
   (r'what(\'s| is) my name',
   ( "I remember {name}",)),
   (r'Do you remember my name',
-  ( "yes I do {name}",)),
+  ( "{%if {name} %}Yes I do {name}{% else %}No{% endif %}",)),
   (r'I need (.*)',
   ( "Why do you need %1?",
     "Would it really help you to get %1?",
@@ -212,5 +212,5 @@ pairs = (
     "How does that make you feel?",
     "How do you feel when you say that?"))
 )
-
-Chat(pairs, reflections).converse()
+firstQuetion="Hi, how are you?"
+Chat(pairs, reflections).converse(firstQuetion)
