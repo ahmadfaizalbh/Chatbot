@@ -35,8 +35,38 @@ reflections = {
 }
 
 
+class multiFunctionCall:
+
+    def __init__(self,func={}):
+        self.__func__ = func
+
+    def call(self,string):
+        s = string.spit(":")
+        if len(s)<=1:
+            return string
+        name = s[0].strip()
+        s = ":".join(s[1:])
+        func = str
+        try:func = self.__func__[name]
+        except:s = string
+        return func(string)
+
+class Topic:
+    def __init__(self,topics):
+        self.topic={"genral":'*'}
+        self.topics = topics
+    
+    def __setitem__(self,key,value):
+        self.topic[key]=value.strip()
+        
+    def __getitem__(self,key):
+        topic = self.topic[key]
+        if topic in self.topics:
+            return topic
+        return '*'
+
 class Chat(object):
-    def __init__(self, pairs, reflections={}):
+    def __init__(self, pairs, reflections={},call=multiFunctionCall()):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -51,25 +81,35 @@ class Chat(object):
         :param reflections: A mapping between first and second person expressions
         :rtype: None
         """
-        self._pairs = []
-        for p in pairs:
-            x,y,z = (p[0],None,p[1]) if len(p)==2 else p[:3]
-            z=tuple((i,self._condition(i)) for i in z)
-            if y:
-                self._pairs.append((re.compile(x, re.IGNORECASE),re.compile(y, re.IGNORECASE),z))
-            else:
-                self._pairs.append((re.compile(x, re.IGNORECASE),y,z))
+        if type(pairs)==dict:
+            if not '*' in pairs:
+                raise KeyError("Topic '*' missing")
+            self._pairs = {topic for topic in pairs}   
+        else:
+            self._pairs = {'*':[]}
+            pairs = {'*':pairs}
+        for topic in pairs:
+            for p in pairs[topic]:
+                x,y,z = (p[0],None,p[1]) if len(p)==2 else p[:3]
+                z=tuple((i,self._condition(i)) for i in z)
+                if y:
+                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),re.compile(y, re.IGNORECASE),z))
+                else:
+                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),y,z))
         self._reflections = reflections
         self._regex = self._compile_reflections()
         self._memory = {"genral":{}}
         self.conversation = {"genral":[]}
         self.sessionID = "genral"
         self.attr = {"genral":{"match":None,"pmatch":None}}
+        self.call = call
+        self.topic = Topic(pairs.keys())
     
     def _startNewSession(self,sessionID):
         self._memory[sessionID]={}
         self.conversation[sessionID]=[]
         self.attr[sessionID]={"match":None,"pmatch":None}
+        self.topic[sessionID] = '*'
 
     def _restructure(self,group,index=None):
         if index==None:
@@ -201,6 +241,12 @@ class Chat(object):
             elif group[index[i]]["action"] == "cap":
                 orderedGroup.append(group[index[i]])
                 i+=1
+            elif group[index[i]]["action"] == "call":
+                orderedGroup.append(group[index[i]])
+                i+=1
+            elif group[index[i]]["action"] == "topic":
+                orderedGroup.append(group[index[i]])
+                i+=1
             else:
                 return i,orderedGroup
         return i,orderedGroup
@@ -245,8 +291,8 @@ class Chat(object):
                 raise SyntaxError("invalid syntax")
         actions = []
         for start,end in start_end_pair:
-            #statement = re.findall(r'^[\s\t]*(if|for|while|split|=|endif|endfor|endwhile|elif|else|chat|low|up|cap)[\s\t]+',response[start,end])
-            statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap)[\s\t]+',response[start:end])
+            #statement = re.findall(r'^[\s\t]*(if|for|while|split|=|endif|endfor|endwhile|elif|else|chat|low|up|cap|call|topic)[\s\t]+',response[start,end])
+            statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',response[start:end])
             if statement:
                 actions.append(statement[0])
             else:
@@ -506,6 +552,24 @@ class Chat(object):
                                         condition[i]["end"],
                                         sessionID =sessionID
                                         ).capitalize()
+            elif condition[i]["action"] == "call":
+                start = condition[i]["start"]+re.compile("([\s\t]*call[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
+                finalResponse += self.call.call(self._checkAndEvalveCondition(
+                                        response,
+                                        condition[i]["child"],
+                                        start,
+                                        condition[i]["end"],
+                                        sessionID =sessionID
+                                        ))
+            elif condition[i]["action"] == "topic":
+                start = condition[i]["start"]+re.compile("([\s\t]*topic[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
+                self.topic[sessionID] = self._checkAndEvalveCondition(
+                                        response,
+                                        condition[i]["child"],
+                                        start,
+                                        condition[i]["end"],
+                                        sessionID =sessionID
+                                        ).strip()
             #elif condition[i]["action"] == "for":
             #elif condition[i]["action"] == "while":
             #elif condition[i]["action"] == "split":
@@ -532,7 +596,7 @@ class Chat(object):
         """
 
         # check each pattern
-        for (pattern, parent, response) in self._pairs:
+        for (pattern, parent, response) in self._pairs[self.topic[sessionID]]:
             match = pattern.match(str)
             parentMatch = parent.match(self.conversation[sessionID][-2]) if parent!=None else True
             # did the pattern match?
