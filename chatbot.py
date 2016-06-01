@@ -11,7 +11,6 @@
 
 import re
 import random
-from nltk import compat
 from py_execute.process_executor import execute
 from mock import Mock
 
@@ -62,8 +61,15 @@ class Chat(object):
                 self._pairs.append((re.compile(x, re.IGNORECASE),y,z))
         self._reflections = reflections
         self._regex = self._compile_reflections()
-        self._memory = {}
-        self.conversation = []
+        self._memory = {"genral":{}}
+        self.conversation = {"genral":[]}
+        self.sessionID = "genral"
+        self.attr = {"genral":{"match":None,"pmatch":None}}
+    
+    def _startNewSession(self,sessionID):
+        self._memory[sessionID]={}
+        self.conversation[sessionID]=[]
+        self.attr[sessionID]={"match":None,"pmatch":None}
 
     def _restructure(self,group,index=None):
         if index==None:
@@ -118,7 +124,17 @@ class Chat(object):
                         group[index[i]]["within"]=[]
                         orderedGroup.append(group[index[i]])
                         i+=1
-                    if group[index[i]]["action"]=="else":
+                    elif group[index[i]]["action"]=="else":
+                        group[index[i]]["within"]=[]
+                        orderedGroup.append(group[index[i]])
+                        i+=1
+                        startIF = False
+                        pos = i
+                        while group[index[pos]]["action"]!="endif":
+                            pos,within = self._getWithin(group,index[pos:])
+                            group[index[i-1]]["within"].append(within)
+                            pos=pos+i
+                        i=pos
                         group[index[i]]["within"]=[]
                         orderedGroup.append(group[index[i]])
                         i+=1
@@ -132,7 +148,7 @@ class Chat(object):
                         group[index[i-1]]["within"].append(within)
                         for i in range(i,pos):
                             del group[index[i]]
-                        i=pos
+                        i=pos+i
             #elif group[index[i]]["action"]=="for":
             #    group[index[i]]["within"]=[]
             #    orderedGroup.append(group[index[i]])
@@ -149,7 +165,7 @@ class Chat(object):
             #            group[index[i-1]]["within"].append(within)
             #            for i in range(i,pos):
             #                del group[index[i]]
-            #            i=pos
+            #            i=pos+i
             #elif group[index[i]]["action"]=="while":
             #    group[index[i]]["within"]=[]
             #    orderedGroup.append(group[index[i]])
@@ -166,18 +182,31 @@ class Chat(object):
             #            group[index[i-1]]["within"].append(within)
             #            for i in range(i,pos):
             #                del group[index[i]]
-            #            i=pos       
+            #            i=pos+i   
             #elif group[index[i]]["action"]=="split":
             #    orderedGroup.append(group[index[i]])
             #    i+=1
             #elif group[index[i]]["action"]=="=":
             #    orderedGroup.append(group[index[i]])
             #    i+=1
+            elif group[index[i]]["action"] == "chat":
+                orderedGroup.append(group[index[i]])
+                i+=1
+            elif group[index[i]]["action"] == "low":
+                orderedGroup.append(group[index[i]])
+                i+=1
+            elif group[index[i]]["action"] == "up":
+                orderedGroup.append(group[index[i]])
+                i+=1
+            elif group[index[i]]["action"] == "cap":
+                orderedGroup.append(group[index[i]])
+                i+=1
             else:
                 return i,orderedGroup
         return i,orderedGroup
                 
     def _setwithin(self,group):
+        old =group
         for i in group:
             if group[i]["child"]:
                 group[i]["child"] = self._setwithin(group[i]["child"])
@@ -185,6 +214,7 @@ class Chat(object):
         index.sort(lambda x,y: cmp(group[x]["start"],group[y]["start"]))
         pos,orderedGroup = self._getWithin(group,index)
         if pos<len(index):
+            print old
             raise SyntaxError("in valid statement")
         return orderedGroup
     
@@ -215,8 +245,8 @@ class Chat(object):
                 raise SyntaxError("invalid syntax")
         actions = []
         for start,end in start_end_pair:
-            #statement = re.findall(r'^[\s\t]*(if|for|while|split|=|endif|endfor|endwhile|elif|else)[\s\t]+',response[start,end])
-            statement = re.findall(r'^[\s\t]*(if|endif|elif|else)[\s\t]+',response[start:end])
+            #statement = re.findall(r'^[\s\t]*(if|for|while|split|=|endif|endfor|endwhile|elif|else|chat|low|up|cap)[\s\t]+',response[start,end])
+            statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap)[\s\t]+',response[start:end])
             if statement:
                 actions.append(statement[0])
             else:
@@ -244,7 +274,7 @@ class Chat(object):
                 self._reflections[mo.string[mo.start():mo.end()]],
                     str.lower())
         
-    def _mapSolve(self,response,start,end):
+    def _mapSolve(self,response,start,end,sessionID = "genral"):
         think=0
         if response[start+1] != "!":
             s=response[start+1:end].strip().split(":")
@@ -268,12 +298,12 @@ class Chat(object):
                     value += ":"+s[i]
                 else:
                     break
-            self._memory[name] = self._substitute(value.strip())
-        if think or not name in self._memory:
+            self._memory[sessionID][name] = self._substitute(value.strip())
+        if think or not name in self._memory[sessionID]:
             return ""
-        return self._memory[name]
+        return self._memory[sessionID][name]
     
-    def _map(self,response):
+    def _map(self,response,sessionID = "genral"):
         pos = [m.start(0) for m in re.finditer(r'[{}]', response)]
         newPos = [start for start in pos if (not start) or response[start-1]!="\\" ]
         i=0
@@ -283,7 +313,7 @@ class Chat(object):
                     break
             if response[newPos[i-1]] == "{":
                 start,end = newPos[i-1],newPos[i]
-                substitution = self._mapSolve(response,start,end)
+                substitution = self._mapSolve(response,start,end,sessionID =sessionID)
                 diff = len(substitution) - (end-start+1)
                 for j in range(i+1,len(newPos)):
                     newPos[j] += diff
@@ -294,14 +324,14 @@ class Chat(object):
                 raise SyntaxError("invalid syntax")
         return response
     
-    def _evalSolve(self,response,start,end):
+    def _evalSolve(self,response,start,end,sessionID = "genral"):
         think=0
         cmdStart = start+1
         if response[cmdStart] == "!":
             think=1
             cmdStart += 1
         cmd = response[cmdStart:end]
-        cmd = self._map(cmd)
+        cmd = self._map(cmd,sessionID =sessionID)
         result = execute(cmd, ui=Mock())
         if result[0]:
             raise SystemError("%d\n%s" % result)
@@ -309,7 +339,30 @@ class Chat(object):
             return ""
         return result[1].replace("{","\{").replace("}","\}")
     
-    def _eval(self,response):
+    def _eval(self,response,sessionID = "genral"):
+        match=self.attr[sessionID]["match"]
+        parentMatch=self.attr[sessionID]["pmatch"]
+        finalResponse = ""
+        prev =0
+        for m in re.finditer(r'%[0-9]+', response):
+            start = m.start(0)
+            end = m.end(0)     
+            num = int(response[start+1:end])
+            finalResponse = response[prev:start] + \
+                self._substitute(match.group(num))
+            prev = end
+        if parentMatch!=None:
+            response = finalResponse + response[prev:]
+            finalResponse = ""
+            prev =0
+            for m in re.finditer(r'%![0-9]+', response):
+                start = m.start(0)
+                end = m.end(0)            
+                num = int(response[start+2:end])
+                finalResponse = response[prev:start] + \
+                    self._substitute(parentMatch.group(num))
+                prev = end
+        response = finalResponse + response[prev:]
         pos = [m.start(0) for m in re.finditer(r'[\[\]]', response)]
         newPos = [start for start in pos if (not start) or response[start-1]!="\\" ]
         i=0
@@ -319,7 +372,7 @@ class Chat(object):
                     break
             if response[newPos[i-1]] == "[":
                 start,end = newPos[i-1],newPos[i]
-                substitution = self._evalSolve(response,start,end)
+                substitution = self._evalSolve(response,start,end,sessionID =sessionID)
                 diff = len(substitution) - (end-start+1)
                 for j in range(i+1,len(newPos)):
                     newPos[j] += diff
@@ -328,11 +381,11 @@ class Chat(object):
                 response = response[:start] + substitution + response[end+1:]
             else:
                 raise SyntaxError("invalid syntax")
-        return self._map(response).replace("\{","{").replace("\}","}")
+        return self._map(response,sessionID =sessionID).replace("\{","{").replace("\}","}")
     
-    def _checkIF(self,con):
-        con = self._eval(con)
-        pos = [(m.start(0),m.start(0),m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
+    def _checkIF(self,con,sessionID = "genral"):
+        #con = self._eval(con,sessionID =sessionID)
+        pos = [(m.start(0),m.end(0),m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
         if not pos:
             return con.strip()
         res = True
@@ -341,21 +394,31 @@ class Chat(object):
         A = con[0:pos[0][0]].strip()
         for j in  range(len(pos)):
             s,e,o = pos[j]
+            try:
+                B = con[e:pos[j+1][0]].strip()
+            except:
+                B = con[e:].strip()
+            try:
+                a = float(A)
+                b = float(b)
+            except:
+                a = A
+                b = B
             if o=="|":
-                prevres = res if prevres == None else (prevres or res)
-            elif o=="|":
-                prevres = res if prevres == None else (prevres and res)
+                if prevres == None:
+                    prevres = res 
+                elif prevres == True:
+                    return True
+                else:
+                    prevres = (prevres or res)
+            elif o=="&":
+                if prevres == None:
+                    prevres = res 
+                elif prevres == False:
+                    return False
+                else:
+                    prevres = (prevres and res)
             else:
-                try:
-                    B = con[e:pos[j+1][0]].strip()
-                except:
-                    B = con[e:].strip()
-                try:
-                    a = float(A)
-                    b = float(b)
-                except:
-                    a = A
-                    b = B
                 if o=="!=":
                     res = (a!=b)
                 elif o=="==":
@@ -371,21 +434,21 @@ class Chat(object):
             A = B
         return res
     
-    def _checkAndEvalveCondition(self, response,condition,startIndex=0,endIndex=None):
+    def _checkAndEvalveCondition(self, response,condition,startIndex=0,endIndex=None,sessionID = "genral"):
         finalResponse = ""
         i=0
         while i < len(condition):
             pos =  condition[i]["start"]-2
-            finalResponse += self._eval(response[startIndex:pos])
+            finalResponse += self._eval(response[startIndex:pos],sessionID =sessionID)
             if condition[i]["action"] == "if":
                 start = condition[i]["start"]+re.compile("([\s\t]*if[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
                 end = condition[i]["end"]
                 check = True
                 matchedIndex = None
                 while check:
-                    con = self._checkAndEvalveCondition(response,condition[i]["child"],start,end)
+                    con = self._checkAndEvalveCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
                     i+=1
-                    if self._checkIF(con):
+                    if self._checkIF(con,sessionID =sessionID):
                         matchedIndex = i-1
                         while condition[i]["action"] != "endif":
                             i+=1
@@ -398,41 +461,68 @@ class Chat(object):
                     elif condition[i]["action"] == "elif":
                         start = condition[i]["start"]+re.compile("[\s\t]*elif[\s\t]+").search(response[condition[i]["start"]:]).end(0)
                         end = condition[i]["end"]
+                    elif condition[i]["action"] == "endif":
+                        check = False     
                 finalResponse += self._checkAndEvalveCondition(
                                         response,
                                         condition[matchedIndex]["within"],
                                         condition[matchedIndex]["end"]+2,
-                                        condition[matchedIndex+1]["start"]-2
+                                        condition[matchedIndex+1]["start"]-2,
+                                        sessionID =sessionID
                                         ) if matchedIndex!=None else ""
-                i+=1
+            elif condition[i]["action"] == "chat":
+                start = condition[i]["start"]+re.compile("([\s\t]*chat[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
+                finalResponse += self.respond(self._checkAndEvalveCondition(
+                                        response,
+                                        condition[i]["child"],
+                                        start,
+                                        condition[i]["end"],
+                                        sessionID =sessionID
+                                        ))
+            elif condition[i]["action"] == "low":
+                start = condition[i]["start"]+re.compile("([\s\t]*low[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
+                finalResponse += self._checkAndEvalveCondition(
+                                        response,
+                                        condition[i]["child"],
+                                        start,
+                                        condition[i]["end"],
+                                        sessionID =sessionID
+                                        ).lower()
+            elif condition[i]["action"] == "up":
+                start = condition[i]["start"]+re.compile("([\s\t]*up[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
+                finalResponse += self._checkAndEvalveCondition(
+                                        response,
+                                        condition[i]["child"],
+                                        start,
+                                        condition[i]["end"],
+                                        sessionID =sessionID
+                                        ).upper()
+            elif condition[i]["action"] == "cap":
+                start = condition[i]["start"]+re.compile("([\s\t]*cap[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
+                finalResponse += self._checkAndEvalveCondition(
+                                        response,
+                                        condition[i]["child"],
+                                        start,
+                                        condition[i]["end"],
+                                        sessionID =sessionID
+                                        ).capitalize()
             #elif condition[i]["action"] == "for":
+            #elif condition[i]["action"] == "while":
             #elif condition[i]["action"] == "split":
             #elif condition[i]["action"] == "=":
-            startIndex = condition[i-1]["end"]+2
-        finalResponse += self._eval(response[startIndex:endIndex if endIndex != None else len(response)])
+            startIndex = condition[i]["end"]+2
+            i+=1
+        finalResponse += self._eval(response[startIndex:endIndex if endIndex != None else len(response)],sessionID =sessionID)
         return finalResponse
             
     
-    def _wildcards(self, response, match, parentMatch):
+    def _wildcards(self, response, match, parentMatch,sessionID = "genral"):
+        self.attr[sessionID]["match"]=match
+        self.attr[sessionID]["pmatch"]=parentMatch
         response,condition =  response
-        for m in re.finditer(r'%[0-9]+', response):
-            start = m.start(0)
-            end = m.end(0)            
-            num = int(response[start+1:end])
-            response = response[:start] + \
-                self._substitute(match.group(num)) + \
-                response[end:]
-        if parentMatch!=None:
-            for m in re.finditer(r'%![0-9]+', response):
-                start = m.start(0)
-                end = m.end(0)            
-                num = int(response[start+2:end])
-                response = response[:start] + \
-                    self._substitute(parentMatch.group(num)) + \
-                    response[end:]
-        return self._checkAndEvalveCondition(response,condition)
+        return self._checkAndEvalveCondition(response,condition,sessionID =sessionID )
 
-    def respond(self, str):
+    def respond(self, str,sessionID = "genral"):
         """
         Generate a response to the user input.
 
@@ -444,12 +534,13 @@ class Chat(object):
         # check each pattern
         for (pattern, parent, response) in self._pairs:
             match = pattern.match(str)
-            parentMatch = parent.match(self.conversation[-2]) if parent!=None else parent
+            parentMatch = parent.match(self.conversation[sessionID][-2]) if parent!=None else True
             # did the pattern match?
-            if (parentMatch==None or parentMatch) and match:
+            if parentMatch and match:
+                parentMatch = None if parentMatch==True else parentMatch
                 resp = random.choice(response)    # pick a random response
                 resp = self._wildcards(resp, match, parentMatch) # process wildcards
-
+    
                 # fix munged punctuation at the end
                 if resp[-2:] == '?.': resp = resp[:-2] + '.'
                 if resp[-2:] == '??': resp = resp[:-2] + '?'
@@ -457,20 +548,20 @@ class Chat(object):
 
     # Hold a conversation with a chatbot
 
-    def converse(self,firstQuetion=None ,quit="quit"):
+    def converse(self,firstQuetion=None ,quit="quit",sessionID = "genral"):
         if firstQuetion!= None:
-            self.conversation.append(firstQuetion)
+            self.conversation[sessionID].append(firstQuetion)
             print firstQuetion
         input = ""
         while input != quit:
             input = quit
-            try: input = compat.raw_input(">")
+            try: input = raw_input(">")
             except EOFError:
                 print input
             if input:
-                self.conversation.append(input)
+                self.conversation[sessionID].append(input)
                 while input[-1] in "!.": input = input[:-1]
-                self.conversation.append(self.respond(input))
-                print self.conversation[-1]
+                self.conversation[sessionID].append(self.respond(input))
+                print self.conversation[sessionID][-1]
 
 
