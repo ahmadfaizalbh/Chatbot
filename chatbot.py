@@ -39,17 +39,20 @@ class multiFunctionCall:
 
     def __init__(self,func={}):
         self.__func__ = func
+        
+    def defaultfunc(self,string,sessionID ="genral"):
+        return string
 
-    def call(self,string):
-        s = string.spit(":")
+    def call(self,string,sessionID):
+        s = string.split(":")
         if len(s)<=1:
             return string
         name = s[0].strip()
         s = ":".join(s[1:])
-        func = str
+        func = self.defaultfunc
         try:func = self.__func__[name]
         except:s = string
-        return func(string)
+        return func(s,sessionID =sessionID)
 
 class Topic:
     def __init__(self,topics):
@@ -81,14 +84,14 @@ class Chat(object):
         :param reflections: A mapping between first and second person expressions
         :rtype: None
         """
+        self._pairs = {'*':[]}
         if type(pairs)==dict:
             if not '*' in pairs:
-                raise KeyError("Topic '*' missing")
-            self._pairs = {topic for topic in pairs}   
+                raise KeyError("Topic '*' missing")   
         else:
-            self._pairs = {'*':[]}
             pairs = {'*':pairs}
         for topic in pairs:
+            self._pairs[topic]=[]
             for p in pairs[topic]:
                 x,y,z = (p[0],None,p[1]) if len(p)==2 else p[:3]
                 z=tuple((i,self._condition(i)) for i in z)
@@ -260,7 +263,6 @@ class Chat(object):
         index.sort(lambda x,y: cmp(group[x]["start"],group[y]["start"]))
         pos,orderedGroup = self._getWithin(group,index)
         if pos<len(index):
-            print old
             raise SyntaxError("in valid statement")
         return orderedGroup
     
@@ -560,7 +562,7 @@ class Chat(object):
                                         start,
                                         condition[i]["end"],
                                         sessionID =sessionID
-                                        ))
+                                        ),sessionID =sessionID)
             elif condition[i]["action"] == "topic":
                 start = condition[i]["start"]+re.compile("([\s\t]*topic[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
                 self.topic[sessionID] = self._checkAndEvalveCondition(
