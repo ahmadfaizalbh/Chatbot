@@ -1,17 +1,30 @@
-from chatbot import Chat,reflections
+from chatbot import Chat,reflections,multiFunctionCall
+import wikipedia
+
 pairs = (
-  (r'Please execute (.*)',
-  ( "[ls -l]",)),
+  (r'Please (.*)',
+  ("{% chat %1 %}",)),
+  
+  ('list directory (.*)',
+  ( "[ls -l %1]",)),
+  
+  ("(Do you know about|what is|who is|tell me about)(.*)",
+  ("{% call whoIs:%2 %}",)),
+  
   (r'Call me (.*)',
   ( "I will remember that {name:%1}",)),
+  
   (r'what(\'s| is) my name',
   ( "{%if {name} %}Your name is {name}{% else %}\
    I don't know your name, Can you please tell me your name?{% endif %}",)),
+   
   ('(I(\'| a)m|my name is) (.*)',
   '(.*)Can you please tell me your name',
   ( "Thank you {name:%3}",)),
+  
   (r'Do you remember my name',
   ( "{% if {name} %}Yes I do {name}{% else %}No,{% chat what is my name %}{% endif %}",)),
+  
   (r'I need (.*)',
   ( "Why do you need %1?",
     "Would it really help you to get %1?",
@@ -194,7 +207,7 @@ pairs = (
     "Do you remember any dreams or nightmares from childhood?",
     "Did the other children sometimes tease you?",
     "How do you think your childhood experiences relate to your feelings today?")),
-
+    
   (r'(.*)\?',
   ( "Why do you ask that?",
     "Please consider whether you can answer your own question.",
@@ -218,5 +231,22 @@ pairs = (
     "How does that make you feel?",
     "How do you feel when you say that?"))
 )
-firstQuetion="Hi, how are you?"
-Chat(pairs, reflections).converse(firstQuetion)
+
+
+def whoIs(query,sessionID="general"):
+    try:
+        return wikipedia.summary(query)
+    except:
+        for newquery in wikipedia.search(query):
+            try:
+                return wikipedia.summary(newquery)
+            except:
+                pass
+    return "I don't know about "+query
+        
+    
+
+call = multiFunctionCall({"whoIs":whoIs})
+firstQuestion="Hi, how are you?"
+Chat(pairs, reflections,call=call).converse(firstQuestion)
+

@@ -29,7 +29,7 @@ class multiFunctionCall:
     def __init__(self,func={}):
         self.__func__ = func
         
-    def defaultfunc(self,string,sessionID ="genral"):
+    def defaultfunc(self,string,sessionID ="general"):
         return string
 
     def call(self,string,sessionID):
@@ -45,7 +45,7 @@ class multiFunctionCall:
 
 class Topic:
     def __init__(self,topics):
-        self.topic={"genral":'*'}
+        self.topic={"general":'*'}
         self.topics = topics
     
     def __setitem__(self,key,value):
@@ -90,10 +90,10 @@ class Chat(object):
                     self._pairs[topic].append((re.compile(x, re.IGNORECASE),y,z))
         self._reflections = reflections
         self._regex = self._compile_reflections()
-        self._memory = {"genral":{}}
-        self.conversation = {"genral":[]}
-        self.sessionID = "genral"
-        self.attr = {"genral":{"match":None,"pmatch":None}}
+        self._memory = {"general":{}}
+        self.conversation = {"general":[]}
+        self.sessionID = "general"
+        self.attr = {"general":{"match":None,"pmatch":None}}
         self.call = call
         self.topic = Topic(pairs.keys())
     
@@ -287,7 +287,7 @@ class Chat(object):
                 self._reflections[mo.string[mo.start():mo.end()]],
                     str.lower())
     
-    def _checkIF(self,con,sessionID = "genral"):
+    def _checkIF(self,con,sessionID = "general"):
         pos = [(m.start(0),m.end(0),m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
         if not pos:
             return con.strip()
@@ -337,7 +337,7 @@ class Chat(object):
             A = B
         return res
     
-    def _checkAndEvalveCondition(self, response,condition=[],startIndex=0,endIndex=None,sessionID = "genral"):
+    def _checkAndEvalveCondition(self, response,condition=[],startIndex=0,endIndex=None,sessionID = "general"):
         finalResponse = ""
         endIndex = endIndex if endIndex != None else len(response)
         if not condition:
@@ -364,7 +364,7 @@ class Chat(object):
                         self._substitute(parentMatch.group(num))
                     prev = end
             finalResponse += prevResponse[prev:]
-            return re.sub(r'([\[\]{}%:])',r"\\\1",finalResponse)
+            return finalResponse
         i=0
         while i < len(condition):
             pos =  condition[i]["start"]-(1 if condition[i]["action"] in  ["map","eval"] else 2) 
@@ -509,15 +509,15 @@ class Chat(object):
             startIndex = condition[i]["end"]+(1 if condition[i]["action"] in  ["map","eval"] else 2) 
             i+=1
         finalResponse += self._checkAndEvalveCondition(response[startIndex:endIndex],sessionID =sessionID)
-        return re.sub(r'([\[\]{}%:])',r"\\\1",finalResponse)
+        return finalResponse
     
-    def _wildcards(self, response, match, parentMatch,sessionID = "genral"):
+    def _wildcards(self, response, match, parentMatch,sessionID = "general"):
         self.attr[sessionID]["match"]=match
         self.attr[sessionID]["pmatch"]=parentMatch
         response,condition =  response
         return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvalveCondition(response,condition,sessionID =sessionID ))
         
-    def respond(self, str,sessionID = "genral"):
+    def respond(self, str,sessionID = "general"):
         """
         Generate a response to the user input.
 
@@ -543,10 +543,10 @@ class Chat(object):
 
     # Hold a conversation with a chatbot
 
-    def converse(self,firstQuetion=None ,quit="quit",sessionID = "genral"):
-        if firstQuetion!= None:
-            self.conversation[sessionID].append(firstQuetion)
-            print firstQuetion
+    def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
+        if firstQuestion!= None:
+            self.conversation[sessionID].append(firstQuestion)
+            print firstQuestion
         input = ""
         while input != quit:
             input = quit
