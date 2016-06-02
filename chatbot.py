@@ -175,7 +175,7 @@ class Chat(object):
                         pos = i
                         while group[index[pos]]["action"]!="endif":
                             pos,within = self._getWithin(group,index[pos:])
-                            group[index[i-1]]["within"].append(within)
+                            group[index[i-1]]["within"]+=within
                             pos=pos+i
                         i=pos
                         group[index[i]]["within"]=[]
@@ -188,50 +188,10 @@ class Chat(object):
                         startIF= False
                     else:
                         pos,within = self._getWithin(group,index[i:])
-                        group[index[i-1]]["within"].append(within)
+                        group[index[i-1]]["within"]+=within
                         for i in range(i,pos):
                             del group[index[i]]
                         i=pos+i
-            #elif group[index[i]]["action"]=="for":
-            #    group[index[i]]["within"]=[]
-            #    orderedGroup.append(group[index[i]])
-            #    i+=1
-            #    startFor = True
-            #    while startFor:
-            #        if i>=len(index):
-            #            raise SyntaxError("for not closed in Conditional statement")
-            #        if group[index[i]]["action"]=="endfor":
-            #            i+=1
-            #            startFor = False
-            #        else:
-            #            pos,within = self._getWithin(group,index[i:])
-            #            group[index[i-1]]["within"].append(within)
-            #            for i in range(i,pos):
-            #                del group[index[i]]
-            #            i=pos+i
-            #elif group[index[i]]["action"]=="while":
-            #    group[index[i]]["within"]=[]
-            #    orderedGroup.append(group[index[i]])
-            #    i+=1
-            #    startwhile = True
-            #    while startFor:
-            #        if i>=len(index):
-            #            raise SyntaxError("while not closed in Conditional statement")
-            #        if group[index[i]]["action"]=="endwhile":
-            #            i+=1
-            #            startFor = False
-            #        else:
-            #            pos,within = self._getWithin(group,index[i:])
-            #            group[index[i-1]]["within"].append(within)
-            #            for i in range(i,pos):
-            #                del group[index[i]]
-            #            i=pos+i   
-            #elif group[index[i]]["action"]=="split":
-            #    orderedGroup.append(group[index[i]])
-            #    i+=1
-            #elif group[index[i]]["action"]=="=":
-            #    orderedGroup.append(group[index[i]])
-            #    i+=1
             elif group[index[i]]["action"] == "chat":
                 orderedGroup.append(group[index[i]])
                 i+=1
@@ -293,7 +253,6 @@ class Chat(object):
                 raise SyntaxError("invalid syntax")
         actions = []
         for start,end in start_end_pair:
-            #statement = re.findall(r'^[\s\t]*(if|for|while|split|=|endif|endfor|endwhile|elif|else|chat|low|up|cap|call|topic)[\s\t]+',response[start,end])
             statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',response[start:end])
             if statement:
                 actions.append(statement[0])
@@ -396,7 +355,7 @@ class Chat(object):
             start = m.start(0)
             end = m.end(0)     
             num = int(response[start+1:end])
-            finalResponse = response[prev:start] + \
+            finalResponse += response[prev:start] + \
                 self._substitute(match.group(num))
             prev = end
         if parentMatch!=None:
@@ -407,7 +366,7 @@ class Chat(object):
                 start = m.start(0)
                 end = m.end(0)            
                 num = int(response[start+2:end])
-                finalResponse = response[prev:start] + \
+                finalResponse += response[prev:start] + \
                     self._substitute(parentMatch.group(num))
                 prev = end
         response = finalResponse + response[prev:]
@@ -432,7 +391,6 @@ class Chat(object):
         return self._map(response,sessionID =sessionID).replace("\{","{").replace("\}","}")
     
     def _checkIF(self,con,sessionID = "genral"):
-        #con = self._eval(con,sessionID =sessionID)
         pos = [(m.start(0),m.end(0),m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
         if not pos:
             return con.strip()
@@ -572,10 +530,6 @@ class Chat(object):
                                         condition[i]["end"],
                                         sessionID =sessionID
                                         ).strip()
-            #elif condition[i]["action"] == "for":
-            #elif condition[i]["action"] == "while":
-            #elif condition[i]["action"] == "split":
-            #elif condition[i]["action"] == "=":
             startIndex = condition[i]["end"]+2
             i+=1
         finalResponse += self._eval(response[startIndex:endIndex if endIndex != None else len(response)],sessionID =sessionID)
