@@ -73,21 +73,16 @@ class Chat(object):
         :param reflections: A mapping between first and second person expressions
         :rtype: None
         """
-        self._pairs = {'*':[]}
+        if type(pairs) in (str,unicode):
+            pairs = self.__processTemplateFile(pairs)
+            
+        self._pairs = {'*':[]} 
         if type(pairs)==dict:
             if not '*' in pairs:
                 raise KeyError("Topic '*' missing")   
         else:
             pairs = {'*':pairs}
-        for topic in pairs:
-            self._pairs[topic]=[]
-            for p in pairs[topic]:
-                x,y,z = (p[0],None,p[1]) if len(p)==2 else p[:3]
-                z=tuple((i,self._condition(i)) for i in z)
-                if y:
-                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),re.compile(y, re.IGNORECASE),z))
-                else:
-                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),y,z))
+        self.__processLearn(pairs)
         self._reflections = reflections
         self._regex = self._compile_reflections()
         self._memory = {"general":{}}
@@ -96,6 +91,105 @@ class Chat(object):
         self.attr = {"general":{"match":None,"pmatch":None}}
         self.call = call
         self.topic = Topic(pairs.keys())
+    
+    def __blockTags(self,text,pos):
+        i=0
+        if pos[i][2]!="block":
+                raise SyntaxError("Expected 'block' tag found '%s'" % pos[i][2])
+        i+=1
+        withinblock = {"learn":{},"response":[],"client":[],"prev":[]}
+        while pos[i][2]!="endblock":
+            if pos[i][2]=="learn":
+                i+=1
+                p,name,pairs = self.__GroupTags(text,pos)
+                i+=p
+                if name in withinblock["learn"]:
+                    withinblock["learn"][name].extend(pairs)
+                else:
+                    withinblock["learn"][name]=pairs
+            elif pos[i][2]=="response":
+                i+=1
+                if pos[i][2]!="endresponse":
+                    raise SyntaxError("Expected 'endresponse' tag found '%s'" % pos[i][2])
+                withinblock["response"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
+            elif pos[i][2]=="client":
+                i+=1
+                if pos[i][2]!="endclient":
+                    raise SyntaxError("Expected 'endclient' tag found '%s'" % pos[i][2])
+                withinblock["client"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
+            elif pos[i][2]=="prev":
+                i+=1
+                if pos[i][2]!="endprev":
+                    raise SyntaxError("Expected 'endprev' tag found '%s'" % pos[i][2])
+                withinblock["prev"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
+            else:
+                raise NameError("Invalid Tag '%s'" %  pos[i][2])
+            i+=1
+        return i+1,(withinblock["client"][0],
+                    withinblock["prev"][0] if withinblock["prev"] else None,
+                    withinblock["response"],
+                    withinblock["learn"] )
+    
+    def __GroupTags(self,text,pos):
+        i=0
+        num = len(pos)
+        pairs=[]
+        if pos[i][2]!="group":
+            raise SyntaxError("Expected 'group' tag found '%s'" % pos[i][2])
+        name = pos[i][3] if pos[i][3] else '*'
+        i+=1
+        while pos[i][2]!="endgroup":
+            p,within = self.__blockTags(text,pos[i:])
+            pairs.append(within)
+            i+=p
+        return i+1,name,pairs
+        
+    def __processTemplateFile(self,fineName):
+        with open(fineName) as template:
+            text = template.read()
+        pos = [(m.start(0),m.end(0),text[m.start(1):m.end(1)],text[m.start(4):m.end(4)]) \
+                for m in  re.finditer( 
+                    r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]|%(?=[^}]))*%}',
+                    text)
+              ]
+        groups = {}
+        while pos:
+            i,name,pairs = self.__GroupTags(text,pos)
+            if name in groups:
+                groups[name].extend(pairs)
+            else:
+                groups[name]=pairs
+            pos = pos[i:]
+        return groups
+        
+    def __processLearn(self,pairs):
+        for topic in pairs:
+            if topic not in self._pairs:
+                self._pairs[topic]=[] 
+            for p in pairs[topic]:
+                l={}
+                y = None
+                if len(p)<2:
+                    raise ValueError("Response not specified")
+                elif len(p)==2:
+                    if type(p[1]) not in (tuple,list):
+                        raise ValueError("Response not specified")
+                    x,z = p
+                elif len(p)==3:
+                    if type(p[1]) not in (tuple,list):
+                       x,y,z = p
+                    else:
+                        x,z,l = p
+                else:
+                    x,y,z,l = p[:4]
+                if type(l) != dict:
+                    raise TypeError("Invalid Type for learn expected dict got '%s'" % type(l).__name__)
+                z=tuple((i,self._condition(i)) for i in z)
+                if y:
+                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),re.compile(y, re.IGNORECASE),z,l))
+                else:
+                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),y,z,l))
+        
     
     def _startNewSession(self,sessionID):
         self._memory[sessionID]={}
@@ -218,7 +312,7 @@ class Chat(object):
         index.sort(lambda x,y: cmp(group[x]["start"],group[y]["start"]))
         pos,orderedGroup = self._getWithin(group,index)
         if pos<len(index):
-            raise SyntaxError("in valid statement")
+            raise SyntaxError("invalid statement")
         return orderedGroup
     
     def _inherit(self,start_end_pair,action):
@@ -263,8 +357,11 @@ class Chat(object):
                     else:
                         actions.append("eval")
             else:
-                raise SyntaxError("invalid syntax")
-        group = self._inherit(start_end_pair,actions)
+                raise SyntaxError("invalid syntax in \"%s\"" % response)
+        try:
+            group = self._inherit(start_end_pair,actions)
+        except SyntaxError:
+            raise SyntaxError("invalid statement in \"%s\"" % response)
         return group
     
     def _compile_reflections(self):
@@ -527,7 +624,7 @@ class Chat(object):
         """
 
         # check each pattern
-        for (pattern, parent, response) in self._pairs[self.topic[sessionID]]:
+        for (pattern, parent, response,learn) in self._pairs[self.topic[sessionID]]:
             match = pattern.match(str)
             parentMatch = parent.match(self.conversation[sessionID][-2]) if parent!=None else True
             # did the pattern match?
@@ -540,7 +637,18 @@ class Chat(object):
                 if resp[-2:] == '?.': resp = resp[:-2] + '.'
                 if resp[-2:] == '??': resp = resp[:-2] + '?'
                 return resp
-
+        if learn:
+            learn = {
+                self._wildcards(topic, match, parentMatch): \
+                tuple(self.__substituteInLearn(pair)  for pair in learn[topic]) \
+                for topic in learn}
+            self.__processLearn(learn)
+                
+    def __substituteInLearn(self,pair):
+        return tuple((self.__substituteInLearn(i) if type(i) in (tuple,list) else \
+        ({self._wildcards(topic, match, parentMatch):self.__substituteInLearn(i[topic]) for topic in i} \
+        if type(i) == dict else self._wildcards(i, match, parentMatch))) for i in pair)
+    
     # Hold a conversation with a chatbot
 
     def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
