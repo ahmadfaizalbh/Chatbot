@@ -102,14 +102,12 @@ class Chat(object):
             if pos[i][2]=="learn":
                 i+=1
                 while pos[i][2]!="endlearn":
-                    p,name,pairs = self.__GroupTags(text,pos)
+                    p,name,pairs = self.__GroupTags(text,pos[i:])
                     i+=p
                     if name in withinblock["learn"]:
                         withinblock["learn"][name].extend(pairs)
                     else:
                         withinblock["learn"][name]=pairs
-                    i+=1
-                i+=1
             elif pos[i][2]=="response":
                 i+=1
                 if pos[i][2]!="endresponse":
@@ -639,22 +637,23 @@ class Chat(object):
                 # fix munged punctuation at the end
                 if resp[-2:] == '?.': resp = resp[:-2] + '.'
                 if resp[-2:] == '??': resp = resp[:-2] + '?'
+                
+                if learn:
+                    learn = {
+                        self._wildcards((topic,self._condition(topic)), match, parentMatch): \
+                        tuple(self.__substituteInLearn(pair, match, parentMatch)  for pair in learn[topic]) \
+                        for topic in learn}
+                    self.__processLearn(learn)
                 return resp
-        if learn:
-            learn = {
-                self._wildcards(topic, match, parentMatch): \
-                tuple(self.__substituteInLearn(pair, match, parentMatch)  for pair in learn[topic]) \
-                for topic in learn}
-            self.__processLearn(learn)
                 
     def __substituteInLearn(self,pair, match, parentMatch):
-        #return tuple((self.__substituteInLearn(i) if type(i) in (tuple,list) else \
-        #({self._wildcards(topic, match, parentMatch): \
+        #return tuple((self.__substituteInLearn(i, match, parentMatch) if type(i) in (tuple,list) else \
+        #({self._wildcards((topic,self._condition(topic)), match, parentMatch): \
         #self.__substituteInLearn(i[topic], match, parentMatch) for topic in i} \
-        #if type(i) == dict else self._wildcards(i, match, parentMatch))) for i in pair)
-        return tuple((self.__substituteInLearn(i) if type(i) in (tuple,list) else \
-        (i if type(i) == dict else self._wildcards(i, match, parentMatch))) for i in pair)
-    
+        #if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch) if i else i))) for i in pair)
+        return tuple((self.__substituteInLearn(i, match, parentMatch) if type(i) in (tuple,list) else \
+            (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch) if i else i))) for i in pair)
+  
     # Hold a conversation with a chatbot
 
     def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
