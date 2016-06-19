@@ -632,7 +632,7 @@ class Chat(object):
             if parentMatch and match:
                 parentMatch = None if parentMatch==True else parentMatch
                 resp = random.choice(response)    # pick a random response
-                resp = self._wildcards(resp, match, parentMatch) # process wildcards
+                resp = self._wildcards(resp, match, parentMatch,sessionID = sessionID) # process wildcards
     
                 # fix munged punctuation at the end
                 if resp[-2:] == '?.': resp = resp[:-2] + '.'
