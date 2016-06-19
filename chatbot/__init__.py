@@ -505,7 +505,7 @@ class Chat(object):
                                         start,
                                         condition[i]["end"],
                                         sessionID =sessionID
-                                        ))
+                                        ),sessionID =sessionID)
             elif condition[i]["action"] == "low":
                 start = condition[i]["start"]+re.compile("([\s\t]*low[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
                 finalResponse += self._checkAndEvalveCondition(
@@ -623,7 +623,6 @@ class Chat(object):
         :param str: The string to be mapped
         :rtype: str
         """
-
         # check each pattern
         for (pattern, parent, response,learn) in self._pairs[self.topic[sessionID]]:
             match = pattern.match(str)
@@ -640,8 +639,8 @@ class Chat(object):
                 
                 if learn:
                     learn = {
-                        self._wildcards((topic,self._condition(topic)), match, parentMatch): \
-                        tuple(self.__substituteInLearn(pair, match, parentMatch)  for pair in learn[topic]) \
+                        self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
+                        tuple(self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID)  for pair in learn[topic]) \
                         for topic in learn}
                     self.__processLearn(learn)
                 return resp
@@ -651,8 +650,8 @@ class Chat(object):
         #({self._wildcards((topic,self._condition(topic)), match, parentMatch): \
         #self.__substituteInLearn(i[topic], match, parentMatch) for topic in i} \
         #if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch) if i else i))) for i in pair)
-        return tuple((self.__substituteInLearn(i, match, parentMatch) if type(i) in (tuple,list) else \
-            (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch) if i else i))) for i in pair)
+        return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
+            (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
   
     # Hold a conversation with a chatbot
 
@@ -669,7 +668,7 @@ class Chat(object):
             if input:
                 self.conversation[sessionID].append(input)
                 while input[-1] in "!.": input = input[:-1]
-                self.conversation[sessionID].append(self.respond(input))
+                self.conversation[sessionID].append(self.respond(input,sessionID=sessionID))
                 print self.conversation[sessionID][-1]
 
 
