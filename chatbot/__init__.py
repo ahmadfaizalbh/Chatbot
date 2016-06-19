@@ -643,14 +643,17 @@ class Chat(object):
         if learn:
             learn = {
                 self._wildcards(topic, match, parentMatch): \
-                tuple(self.__substituteInLearn(pair)  for pair in learn[topic]) \
+                tuple(self.__substituteInLearn(pair, match, parentMatch)  for pair in learn[topic]) \
                 for topic in learn}
             self.__processLearn(learn)
                 
-    def __substituteInLearn(self,pair):
+    def __substituteInLearn(self,pair, match, parentMatch):
+        #return tuple((self.__substituteInLearn(i) if type(i) in (tuple,list) else \
+        #({self._wildcards(topic, match, parentMatch): \
+        #self.__substituteInLearn(i[topic], match, parentMatch) for topic in i} \
+        #if type(i) == dict else self._wildcards(i, match, parentMatch))) for i in pair)
         return tuple((self.__substituteInLearn(i) if type(i) in (tuple,list) else \
-        ({self._wildcards(topic, match, parentMatch):self.__substituteInLearn(i[topic]) for topic in i} \
-        if type(i) == dict else self._wildcards(i, match, parentMatch))) for i in pair)
+        (i if type(i) == dict else self._wildcards(i, match, parentMatch))) for i in pair)
     
     # Hold a conversation with a chatbot
 
