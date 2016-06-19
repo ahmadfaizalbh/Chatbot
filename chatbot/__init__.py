@@ -101,12 +101,15 @@ class Chat(object):
         while pos[i][2]!="endblock":
             if pos[i][2]=="learn":
                 i+=1
-                p,name,pairs = self.__GroupTags(text,pos)
-                i+=p
-                if name in withinblock["learn"]:
-                    withinblock["learn"][name].extend(pairs)
-                else:
-                    withinblock["learn"][name]=pairs
+                while pos[i][2]!="endlearn":
+                    p,name,pairs = self.__GroupTags(text,pos)
+                    i+=p
+                    if name in withinblock["learn"]:
+                        withinblock["learn"][name].extend(pairs)
+                    else:
+                        withinblock["learn"][name]=pairs
+                    i+=1
+                i+=1
             elif pos[i][2]=="response":
                 i+=1
                 if pos[i][2]!="endresponse":
@@ -166,7 +169,7 @@ class Chat(object):
         for topic in pairs:
             if topic not in self._pairs:
                 self._pairs[topic]=[] 
-            for p in pairs[topic]:
+            for p in pairs[topic][::-1]:
                 l={}
                 y = None
                 if len(p)<2:
@@ -186,9 +189,9 @@ class Chat(object):
                     raise TypeError("Invalid Type for learn expected dict got '%s'" % type(l).__name__)
                 z=tuple((i,self._condition(i)) for i in z)
                 if y:
-                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),re.compile(y, re.IGNORECASE),z,l))
+                    self._pairs[topic].insert(0,(re.compile(x, re.IGNORECASE),re.compile(y, re.IGNORECASE),z,l))
                 else:
-                    self._pairs[topic].append((re.compile(x, re.IGNORECASE),y,z,l))
+                    self._pairs[topic].insert(0,(re.compile(x, re.IGNORECASE),y,z,l))
         
     
     def _startNewSession(self,sessionID):
