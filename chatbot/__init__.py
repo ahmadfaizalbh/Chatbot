@@ -645,7 +645,7 @@ class Chat(object):
                     self.__processLearn(learn)
                 return resp
                 
-    def __substituteInLearn(self,pair, match, parentMatch,sessionID = sessionID):
+    def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         #return tuple((self.__substituteInLearn(i, match, parentMatch) if type(i) in (tuple,list) else \
         #({self._wildcards((topic,self._condition(topic)), match, parentMatch): \
         #self.__substituteInLearn(i[topic], match, parentMatch) for topic in i} \
