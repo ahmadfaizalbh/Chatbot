@@ -145,8 +145,8 @@ class Chat(object):
             i+=p
         return i+1,name,pairs
         
-    def __processTemplateFile(self,fineName):
-        with open(fineName) as template:
+    def __processTemplateFile(self,fileName):
+        with open(fileName) as template:
             text = template.read()
         pos = [(m.start(0),m.end(0),text[m.start(1):m.end(1)],text[m.start(4):m.end(4)]) \
                 for m in  re.finditer( 
@@ -435,7 +435,7 @@ class Chat(object):
             A = B
         return res
     
-    def _checkAndEvalveCondition(self, response,condition=[],startIndex=0,endIndex=None,sessionID = "general"):
+    def _checkAndEvaluateCondition(self, response,condition=[],startIndex=0,endIndex=None,sessionID = "general"):
         finalResponse = ""
         endIndex = endIndex if endIndex != None else len(response)
         if not condition:
@@ -466,14 +466,14 @@ class Chat(object):
         i=0
         while i < len(condition):
             pos =  condition[i]["start"]-(1 if condition[i]["action"] in  ["map","eval"] else 2) 
-            finalResponse += self._checkAndEvalveCondition(response[startIndex:pos],sessionID =sessionID)
+            finalResponse += self._checkAndEvaluateCondition(response[startIndex:pos],sessionID =sessionID)
             if condition[i]["action"] == "if":
                 start = condition[i]["start"]+re.compile("([\s\t]*if[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
                 end = condition[i]["end"]
                 check = True
                 matchedIndex = None
                 while check:
-                    con = self._checkAndEvalveCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
+                    con = self._checkAndEvaluateCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
                     i+=1
                     if self._checkIF(con,sessionID =sessionID):
                         matchedIndex = i-1
@@ -490,7 +490,7 @@ class Chat(object):
                         end = condition[i]["end"]
                     elif condition[i]["action"] == "endif":
                         check = False     
-                finalResponse += self._checkAndEvalveCondition(
+                finalResponse += self._checkAndEvaluateCondition(
                                         response,
                                         condition[matchedIndex]["within"],
                                         condition[matchedIndex]["end"]+2,
@@ -499,7 +499,7 @@ class Chat(object):
                                         ) if matchedIndex!=None else ""
             elif condition[i]["action"] == "chat":
                 start = condition[i]["start"]+re.compile("([\s\t]*chat[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self.respond(self._checkAndEvalveCondition(
+                finalResponse += self.respond(self._checkAndEvaluateCondition(
                                         response,
                                         condition[i]["child"],
                                         start,
@@ -508,7 +508,7 @@ class Chat(object):
                                         ),sessionID =sessionID)
             elif condition[i]["action"] == "low":
                 start = condition[i]["start"]+re.compile("([\s\t]*low[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self._checkAndEvalveCondition(
+                finalResponse += self._checkAndEvaluateCondition(
                                         response,
                                         condition[i]["child"],
                                         start,
@@ -517,7 +517,7 @@ class Chat(object):
                                         ).lower()
             elif condition[i]["action"] == "up":
                 start = condition[i]["start"]+re.compile("([\s\t]*up[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self._checkAndEvalveCondition(
+                finalResponse += self._checkAndEvaluateCondition(
                                         response,
                                         condition[i]["child"],
                                         start,
@@ -526,7 +526,7 @@ class Chat(object):
                                         ).upper()
             elif condition[i]["action"] == "cap":
                 start = condition[i]["start"]+re.compile("([\s\t]*cap[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self._checkAndEvalveCondition(
+                finalResponse += self._checkAndEvaluateCondition(
                                         response,
                                         condition[i]["child"],
                                         start,
@@ -535,7 +535,7 @@ class Chat(object):
                                         ).capitalize()
             elif condition[i]["action"] == "call":
                 start = condition[i]["start"]+re.compile("([\s\t]*call[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self.call.call(self._checkAndEvalveCondition(
+                finalResponse += self.call.call(self._checkAndEvaluateCondition(
                                         response,
                                         condition[i]["child"],
                                         start,
@@ -544,7 +544,7 @@ class Chat(object):
                                         ),sessionID =sessionID)
             elif condition[i]["action"] == "topic":
                 start = condition[i]["start"]+re.compile("([\s\t]*topic[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                self.topic[sessionID] = self._checkAndEvalveCondition(
+                self.topic[sessionID] = self._checkAndEvaluateCondition(
                                         response,
                                         condition[i]["child"],
                                         start,
@@ -558,7 +558,7 @@ class Chat(object):
                 if response[start] == "!":
                     think = True
                     start +=1
-                content = self._checkAndEvalveCondition(
+                content = self._checkAndEvaluateCondition(
                                             response,
                                             condition[i]["child"],
                                             start,
@@ -592,7 +592,7 @@ class Chat(object):
                 if response[start] == "!":
                     think = True
                     start +=1
-                content = self._checkAndEvalveCondition(
+                content = self._checkAndEvaluateCondition(
                                             response,
                                             condition[i]["child"],
                                             start,
@@ -606,14 +606,14 @@ class Chat(object):
                     finalResponse +=   result[1]
             startIndex = condition[i]["end"]+(1 if condition[i]["action"] in  ["map","eval"] else 2) 
             i+=1
-        finalResponse += self._checkAndEvalveCondition(response[startIndex:endIndex],sessionID =sessionID)
+        finalResponse += self._checkAndEvaluateCondition(response[startIndex:endIndex],sessionID =sessionID)
         return finalResponse
     
     def _wildcards(self, response, match, parentMatch,sessionID = "general"):
         self.attr[sessionID]["match"]=match
         self.attr[sessionID]["pmatch"]=parentMatch
         response,condition =  response
-        return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvalveCondition(response,condition,sessionID =sessionID ))
+        return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvaluateCondition(response,condition,sessionID =sessionID ))
         
     def respond(self, str,sessionID = "general"):
         """
