@@ -2,48 +2,40 @@
 Python chatbot
 
 ```python
-# should contain topic '*'
-from chatbot import *
-pair = {  topicName1: 
-                  (
-                    ( "Pattern to match what clent said",
-                      "Pattern to match what bot said",#Optional
-                      ( "Bots response 1", # bot makes a rangom choice of one from this
-                        "Bots response 2",
-                        "Bots response 3",
-                        ...
-                      )
-                    ),
-                    ...
-                  ),
-          topicName2: 
-                  (
-                    ( "Pattern to match what clent said",
-                      "Pattern to match what bot said",#Optional
-                      ( "Bots response 1",
-                        "Bots response 2",
-                        "Bots response 3",
-                        ...
-                      )
-                    ),
-                    ...
-                  ),
-          ...
-        }
-firstQuetion =`first thing that bot would say`
-Chat(pairs, reflections).converse(firstQuetion)
+from chatbot import Chat,reflections,multiFunctionCall
+import wikipedia
+
+def whoIs(query,sessionID="general"):
+    try:
+        return wikipedia.summary(query)
+    except:
+        for newquery in wikipedia.search(query):
+            try:
+                return wikipedia.summary(newquery)
+            except:
+                pass
+    return "I don't know about "+query
+        
+call = multiFunctionCall({"whoIs":whoIs})
+firstQuestion="Hi, how are you?"
+Chat("examples/Example.template", reflections,call=call).converse(firstQuestion)
 ```
-The Pattern is python regex pattern.
 
 
-## List of feature supported in bot response
+## List of feature supported in bot template
 1. [Memory](#memory)
 2. [Get matched group](#get-matched-group)
 3. [Recursion](#recursion)
 4. [Condition](#condition)
 5. [Change Topic](#change-topic)
 6. [Interact with python function](#interact-with-python-function)
-6. [Execute shell script](#execute-shell-script)
+7. [Execute shell script](#execute-shell-script)
+8. [Topic based group](#topic-based-group)
+9. [Learn](#learn)
+10. [To upper case](#to-upper-case)
+11. [To lower case](#to-lower-case)
+12. [Capitalize](#capitalize)
+13. [Previous](#previous)
 
 ---
 
@@ -110,4 +102,52 @@ It will do a pattern match for statement
 Execute command in think mode
 > ```
 [! cmd ]
+```
+
+## Topic based group 
+>```
+{% group topicName %}
+  {% block %}
+      {% client %}client says {% endclient %}
+      {% response %}response test% endresponse %}
+  {% endblock %}
+  ...
+{% endgroup %}
+```
+
+## Learn
+> ```
+{% learn %}
+  {% group topicName %}
+    {% block %}
+        {% client %}client says {% endclient %}
+        {% response %}response test% endresponse %}
+    {% endblock %}
+    ...
+  {% endgroup %}
+  ...
+{% endlearn %}
+```
+
+# To upper case
+>```
+{% up string %}
+```
+
+# To lower case
+>```
+{% low string %}
+```
+
+# Capitalize
+>```
+{% cap string %}
+```
+# Previous
+>```
+{% block %}
+    {% client %}client's statement pattern{% endclient %}
+    {% prev %}previous bot's statement pattern{% endprev %}
+    {% response %}response string{% endresponse %}
+{% endblock %}
 ```
