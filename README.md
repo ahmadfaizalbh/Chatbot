@@ -143,6 +143,7 @@ Execute command in think mode
 >```
 {% cap string %}
 ```
+
 # Previous
 >```
 {% block %}
