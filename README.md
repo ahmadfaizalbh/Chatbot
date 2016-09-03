@@ -21,6 +21,12 @@ firstQuestion="Hi, how are you?"
 Chat("examples/Example.template", reflections,call=call).converse(firstQuestion)
 ```
 
+For Detail on how to build Facebook messenger bot checkout  [Facebook Integration.ipynb](https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb)
+
+For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/How%20to%20build%20a%20bot.ipynb)
+
+#### Sample Apps
+A sample facebook messenger bot built using Django is available here [Facebook messenger bot](https://github.com/ahmadfaizalbh/FacebookMessengerBot/)
 
 ## List of feature supported in bot template
 1. [Memory](#memory)
