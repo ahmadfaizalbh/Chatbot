@@ -1,7 +1,7 @@
 import re
 import random
-from py_execute.process_executor import execute
-from mock import Mock
+#from py_execute.process_executor import execute
+#from mock import Mock
 
 
 reflections = {
@@ -73,8 +73,19 @@ class Chat(object):
         :param reflections: A mapping between first and second person expressions
         :rtype: None
         """
-        if type(pairs) in (str,unicode):
-            pairs = self.__processTemplateFile(pairs)
+        self.__action_handlers = {"chat":self.__chat_handler,
+                          "low":self.__low_handler,
+                          "up":self.__up_handler,
+                          "cap":self.__cap_handler,
+                          "call":self.__call_handler,
+                          "topic":self.__topic_handler,
+                          "map":self.__map_handler,
+                          "eval":self.__eval_handler,
+            }
+        try:
+            if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
+        except NameError as e:
+            if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
             
         self._pairs = {'*':[]} 
         if type(pairs)==dict:
@@ -236,72 +247,44 @@ class Chat(object):
                   } for i in group}
     
     def _getWithin(self,group,index):
-        i=0
+
+        
+        def init_group(i):
+            group[index[i]]["within"]=[]
+            orderedGroup.append(group[index[i]])
+            return i+1
+
+        def append_group(pos,i):
+            pos,within = self._getWithin(group,index[pos:])
+            group[index[i-1]]["within"]+=within
+            return pos
+
+        i = 0
         orderedGroup = []
         while i<len(index):
             if group[index[i]]["action"]=="if":
-                group[index[i]]["within"]=[]
-                orderedGroup.append(group[index[i]])
-                i+=1
+                i=init_group(i)
                 startIF = True 
                 while startIF:
                     if i>=len(index):
                         raise SyntaxError("If not closed in Conditional statement")
-                    if group[index[i]]["action"]=="elif":
-                        group[index[i]]["within"]=[]
-                        orderedGroup.append(group[index[i]])
-                        i+=1
+                    if group[index[i]]["action"]=="elif": i = init_group(i)
                     elif group[index[i]]["action"]=="else":
-                        group[index[i]]["within"]=[]
-                        orderedGroup.append(group[index[i]])
-                        i+=1
+                        pos = i = init_group(i)
                         startIF = False
-                        pos = i
-                        while group[index[pos]]["action"]!="endif":
-                            pos,within = self._getWithin(group,index[pos:])
-                            group[index[i-1]]["within"]+=within
-                            pos=pos+i
-                        i=pos
-                        group[index[i]]["within"]=[]
-                        orderedGroup.append(group[index[i]])
-                        i+=1
+                        while group[index[pos]]["action"]!="endif": pos = append_group(pos,i)+i
+                        i = init_group(pos)
                     elif group[index[i]]["action"]=="endif":
-                        group[index[i]]["within"]=[]
-                        orderedGroup.append(group[index[i]])
-                        i+=1
-                        startIF= False
+                        i = init_group(i)
+                        startIF = False
                     else:
-                        pos,within = self._getWithin(group,index[i:])
-                        group[index[i-1]]["within"]+=within
-                        for i in range(i,pos):
-                            del group[index[i]]
-                        i=pos+i
-            elif group[index[i]]["action"] == "chat":
+                        pos = append_group(i,i)
+                        for j in range(i,pos): del group[index[j]]
+                        i += pos
+            elif group[index[i]]["action"] in self.__action_handlers .keys():
                 orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "low":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "up":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "cap":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "call":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "topic":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "map":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            elif group[index[i]]["action"] == "eval":
-                orderedGroup.append(group[index[i]])
-                i+=1
-            else:
-                return i,orderedGroup
+                i += 1
+            else:return i,orderedGroup
         return i,orderedGroup
                 
     def _setwithin(self,group):
@@ -310,7 +293,7 @@ class Chat(object):
             if group[i]["child"]:
                 group[i]["child"] = self._setwithin(group[i]["child"])
         index = list(group)
-        index.sort(lambda x,y: cmp(group[x]["start"],group[y]["start"]))
+        index.sort(key =lambda x: group[x]["start"])
         pos,orderedGroup = self._getWithin(group,index)
         if pos<len(index):
             raise SyntaxError("invalid statement")
@@ -390,51 +373,146 @@ class Chat(object):
         if not pos:
             return con.strip()
         res = True
-        prevres = None
+        prevres = True
         prevO = None
+        pcsymbol = "&"
         A = con[0:pos[0][0]].strip()
         for j in  range(len(pos)):
             s,e,o = pos[j]
-            try:
-                B = con[e:pos[j+1][0]].strip()
-            except:
-                B = con[e:].strip()
-            try:
-                a = float(A)
-                b = float(b)
-            except:
-                a = A
-                b = B
-            if o=="|":
-                if prevres == None:
-                    prevres = res 
-                elif prevres == True:
-                    return True
-                else:
-                    prevres = (prevres or res)
-            elif o=="&":
-                if prevres == None:
-                    prevres = res 
-                elif prevres == False:
-                    return False
-                else:
-                    prevres = (prevres and res)
+            try:B = con[e:pos[j+1][0]].strip()
+            except:B = con[e:].strip()
+            try:a,b = float(A),float(b)
+            except:a,b = A,B
+            if o in ("|","&"):
+                prevres = (prevres or res) if pcsymbol == "|" else (prevres and res)
+                pcsymbol = o
+                res = True
             else:
-                if o=="!=":
-                    res = (a!=b)
-                elif o=="==":
-                    res = (a==b)
-                elif o=="<=":
-                    res = (a<=b)
-                elif o=="<":
-                    res = (a<b)
-                elif o==">=":
-                    res = (a>=b)
-                elif o==">":
-                    res = (a>b)
+                if o=="!=":res = (a!=b) and res
+                elif o=="==":res = (a==b) and res
+                elif o=="<=":res = (a<=b) and res
+                elif o=="<":res = (a<b) and res
+                elif o==">=":res = (a>=b) and res
+                elif o==">":res = (a>b) and res
             A = B
-        return res
+        return (prevres or res) if pcsymbol == "|" else (prevres and res)
     
+    def __if_handler(self,i,condition,response,sessionID):
+        start = self.__get_start_pos(condition[i]["start"],response,"if")
+        end = condition[i]["end"]
+        check = True
+        matchedIndex = None
+        while check:
+            con = self._checkAndEvaluateCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
+            i+=1
+            if self._checkIF(con,sessionID =sessionID):
+                matchedIndex = i-1
+                while condition[i]["action"] != "endif":
+                    i+=1
+                check = False
+            elif condition[i]["action"] == "else":
+                matchedIndex = i
+                while condition[i]["action"] != "endif":
+                    i+=1
+                check = False                        
+            elif condition[i]["action"] == "elif":
+                start = self.__get_start_pos(condition[i]["start"],response,"elif")
+                end = condition[i]["end"]
+            elif condition[i]["action"] == "endif":
+                check = False     
+        return ((self._checkAndEvaluateCondition(
+                                response,
+                                condition[matchedIndex]["within"],
+                                condition[matchedIndex]["end"]+2,
+                                condition[matchedIndex+1]["start"]-2,
+                                sessionID =sessionID
+                                ) if matchedIndex!=None else ""),i)
+    
+    def __handler(self,condition,response,action,sessionID):
+        return self._checkAndEvaluateCondition(
+                                response,
+                                condition["child"],
+                                self.__get_start_pos(condition["start"],response,action),
+                                condition["end"],
+                                sessionID =sessionID
+                                )
+    
+    def __chat_handler(self,i,condition,response,sessionID):
+        return self.respond(self.__handler(condition[i],response,"chat",sessionID),sessionID =sessionID)
+    
+    def __low_handler(self,i,condition,response,sessionID):
+        return self.__handler(condition[i],response,"low",sessionID).lower()
+        
+    def __up_handler(self,i,condition,response,sessionID):
+        return self.__handler(condition[i],response,"up",sessionID).upper()
+        
+    def __cap_handler(self,i,condition,response,sessionID):
+        return self.__handler(condition[i],response,"cap",sessionID).capitalize()
+    
+    def __call_handler(self,i,condition,response,sessionID):
+        return self.call.call(self.__handler(condition[i],response,"call",sessionID),sessionID =sessionID)
+    
+    def __topic_handler(self,i,condition,response,sessionID):
+        self.topic[sessionID] = self.__handler(condition[i],response,"topic",sessionID).strip()
+        return ""
+        
+    def __get_start_pos(self,start,response,exp):
+        return start+re.compile(r"([\s\t]*"+exp+"[\s\t]+)").search(response[start:]).end(1)
+
+    def __map_handler(self,i,condition,response,sessionID):
+        start = condition[i]["start"]
+        end = condition[i]["end"]
+        think = False
+        if response[start] == "!":
+            think = True
+            start +=1
+        content = self._checkAndEvaluateCondition(
+                                    response,
+                                    condition[i]["child"],
+                                    start,
+                                    end,
+                                    sessionID =sessionID
+                                    ).strip().split(":")
+        name = content[0]
+        thisIndex=0
+        for thisIndex in range(1,len(content)):
+            if name[-1]=="\\":
+                name += ":"+content[thisIndex]
+            else:
+                thisIndex-=1
+                break
+        thisIndex+=1
+        name = name.strip().lower()
+        if thisIndex<(len(content)):
+            value = content[thisIndex]
+            for thisIndex in range(thisIndex+1,len(content)):
+                if value[-1]=="\\":
+                    value += ":"+content[thisIndex]
+                else:
+                    break
+            self._memory[sessionID][name] = self._substitute(value.strip())
+        return self._memory[sessionID][name] if not think and name in self._memory[sessionID] else ""
+    
+    def __eval_handler(self,i,condition,restopnse,sessionID):
+        return ""
+        #start = condition[i]["start"]
+        #end = condition[i]["end"]
+        #think = False
+        #if response[start] == "!":
+        #    think = True
+        #    start +=1
+        #content = self._checkAndEvaluateCondition(
+        #                            response,
+        #                            condition[i]["child"],
+        #                            start,
+        #                            end,
+        #                            sessionID =sessionID
+        #                            ).strip()
+        #result = execute(content, ui=Mock())
+        #if result[0]:
+        #    raise SystemError("%d\n%s" % result)  
+        #return "" if think else result[1]
+        
     def _checkAndEvaluateCondition(self, response,condition=[],startIndex=0,endIndex=None,sessionID = "general"):
         finalResponse = ""
         endIndex = endIndex if endIndex != None else len(response)
@@ -466,144 +544,12 @@ class Chat(object):
         i=0
         while i < len(condition):
             pos =  condition[i]["start"]-(1 if condition[i]["action"] in  ["map","eval"] else 2) 
-            finalResponse += self._checkAndEvaluateCondition(response[startIndex:pos],sessionID =sessionID)
-            if condition[i]["action"] == "if":
-                start = condition[i]["start"]+re.compile("([\s\t]*if[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                end = condition[i]["end"]
-                check = True
-                matchedIndex = None
-                while check:
-                    con = self._checkAndEvaluateCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
-                    i+=1
-                    if self._checkIF(con,sessionID =sessionID):
-                        matchedIndex = i-1
-                        while condition[i]["action"] != "endif":
-                            i+=1
-                        check = False
-                    elif condition[i]["action"] == "else":
-                        matchedIndex = i
-                        while condition[i]["action"] != "endif":
-                            i+=1
-                        check = False                        
-                    elif condition[i]["action"] == "elif":
-                        start = condition[i]["start"]+re.compile("[\s\t]*elif[\s\t]+").search(response[condition[i]["start"]:]).end(0)
-                        end = condition[i]["end"]
-                    elif condition[i]["action"] == "endif":
-                        check = False     
-                finalResponse += self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[matchedIndex]["within"],
-                                        condition[matchedIndex]["end"]+2,
-                                        condition[matchedIndex+1]["start"]-2,
-                                        sessionID =sessionID
-                                        ) if matchedIndex!=None else ""
-            elif condition[i]["action"] == "chat":
-                start = condition[i]["start"]+re.compile("([\s\t]*chat[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self.respond(self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[i]["child"],
-                                        start,
-                                        condition[i]["end"],
-                                        sessionID =sessionID
-                                        ),sessionID =sessionID)
-            elif condition[i]["action"] == "low":
-                start = condition[i]["start"]+re.compile("([\s\t]*low[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[i]["child"],
-                                        start,
-                                        condition[i]["end"],
-                                        sessionID =sessionID
-                                        ).lower()
-            elif condition[i]["action"] == "up":
-                start = condition[i]["start"]+re.compile("([\s\t]*up[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[i]["child"],
-                                        start,
-                                        condition[i]["end"],
-                                        sessionID =sessionID
-                                        ).upper()
-            elif condition[i]["action"] == "cap":
-                start = condition[i]["start"]+re.compile("([\s\t]*cap[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[i]["child"],
-                                        start,
-                                        condition[i]["end"],
-                                        sessionID =sessionID
-                                        ).capitalize()
-            elif condition[i]["action"] == "call":
-                start = condition[i]["start"]+re.compile("([\s\t]*call[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                finalResponse += self.call.call(self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[i]["child"],
-                                        start,
-                                        condition[i]["end"],
-                                        sessionID =sessionID
-                                        ),sessionID =sessionID)
-            elif condition[i]["action"] == "topic":
-                start = condition[i]["start"]+re.compile("([\s\t]*topic[\s\t]+)").search(response[condition[i]["start"]:]).end(1)
-                self.topic[sessionID] = self._checkAndEvaluateCondition(
-                                        response,
-                                        condition[i]["child"],
-                                        start,
-                                        condition[i]["end"],
-                                        sessionID =sessionID
-                                        ).strip()
-            elif condition[i]["action"] == "map":
-                start = condition[i]["start"]
-                end = condition[i]["end"]
-                think = False
-                if response[start] == "!":
-                    think = True
-                    start +=1
-                content = self._checkAndEvaluateCondition(
-                                            response,
-                                            condition[i]["child"],
-                                            start,
-                                            end,
-                                            sessionID =sessionID
-                                            ).strip().split(":")
-                name = content[0]
-                thisIndex=0
-                for thisIndex in range(1,len(content)):
-                    if name[-1]=="\\":
-                        name += ":"+content[thisIndex]
-                    else:
-                        thisIndex-=1
-                        break
-                thisIndex+=1
-                name = name.strip().lower()
-                if thisIndex<(len(content)):
-                    value = content[thisIndex]
-                    for thisIndex in range(thisIndex+1,len(content)):
-                        if value[-1]=="\\":
-                            value += ":"+content[thisIndex]
-                        else:
-                            break
-                    self._memory[sessionID][name] = self._substitute(value.strip())
-                if not think and name in self._memory[sessionID]:  
-                    finalResponse +=   self._memory[sessionID][name]
-            elif condition[i]["action"] == "eval":
-                start = condition[i]["start"]
-                end = condition[i]["end"]
-                think = False
-                if response[start] == "!":
-                    think = True
-                    start +=1
-                content = self._checkAndEvaluateCondition(
-                                            response,
-                                            condition[i]["child"],
-                                            start,
-                                            end,
-                                            sessionID =sessionID
-                                            ).strip()
-                result = execute(content, ui=Mock())
-                if result[0]:
-                    raise SystemError("%d\n%s" % result)
-                if not think:  
-                    finalResponse +=   result[1]
+            finalResponse += self._checkAndEvaluateCondition(response[startIndex:pos],sessionID =sessionID)           
+            try:finalResponse += self.__action_handlers[condition[i]["action"]](i,condition,response,sessionID)
+            except KeyError as e:
+                if condition[i]["action"] == "if":
+                    response_txt,i = self.__if_handler(i,condition,response,sessionID)
+                    finalResponse += response_txt
             startIndex = condition[i]["end"]+(1 if condition[i]["action"] in  ["map","eval"] else 2) 
             i+=1
         finalResponse += self._checkAndEvaluateCondition(response[startIndex:endIndex],sessionID =sessionID)
@@ -646,10 +592,6 @@ class Chat(object):
                 return resp
                 
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
-        #return tuple((self.__substituteInLearn(i, match, parentMatch) if type(i) in (tuple,list) else \
-        #({self._wildcards((topic,self._condition(topic)), match, parentMatch): \
-        #self.__substituteInLearn(i[topic], match, parentMatch) for topic in i} \
-        #if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch) if i else i))) for i in pair)
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
             (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
   
@@ -658,17 +600,18 @@ class Chat(object):
     def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
         if firstQuestion!= None:
             self.conversation[sessionID].append(firstQuestion)
-            print firstQuestion
-        input = ""
-        while input != quit:
-            input = quit
-            try: input = raw_input(">")
-            except EOFError:
-                print input
-            if input:
-                self.conversation[sessionID].append(input)
-                while input[-1] in "!.": input = input[:-1]
-                self.conversation[sessionID].append(self.respond(input,sessionID=sessionID))
-                print self.conversation[sessionID][-1]
+            print (firstQuestion)
+        try:input_reader = raw_input
+        except NameError:input_reader = input
+        input_sentence = ""
+        while input_sentence != quit:
+            input_sentence = quit
+            try: input_sentence = input_reader(">")
+            except EOFError:print (input_sentence)
+            if input_sentence:
+                self.conversation[sessionID].append(input_sentence)
+                while input_sentence[-1] in "!.": input_sentence = input_sentence[:-1]
+                self.conversation[sessionID].append(self.respond(input_sentence,sessionID=sessionID))
+                print (self.conversation[sessionID][-1])
 
 
