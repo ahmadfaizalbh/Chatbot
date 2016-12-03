@@ -595,6 +595,7 @@ class Chat(object):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
             (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
   
+    # Hold a conversation with a chatbot
     def save_template(self,filename):
         with open(filename,"w") as template:
             self.__genrate_and_wrie_template(template,self._pairs)
@@ -616,7 +617,8 @@ class Chat(object):
                 template.write("{% endblock %}")
             template.write("{% endgroup %}")
                         
-    # Hold a conversation with a chatbot                                       
+                                        
+
     def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
         if firstQuestion!= None:
             self.conversation[sessionID].append(firstQuestion)

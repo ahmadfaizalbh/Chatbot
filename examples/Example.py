@@ -16,5 +16,6 @@ def whoIs(query,sessionID="general"):
 
 call = multiFunctionCall({"whoIs":whoIs})
 firstQuestion="Hi, how are you?"
-Chat("Example.template", reflections,call=call).converse(firstQuestion)
-
+chat = Chat("Example.template", reflections,call=call)
+chat.converse(firstQuestion)
+chat.save_template("test.template")
