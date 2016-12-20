@@ -1,5 +1,5 @@
 from chatbot import Chat,reflections,multiFunctionCall
-import wikipedia
+import wikipedia,os
 
 def whoIs(query,sessionID="general"):
     try:
@@ -16,6 +16,6 @@ def whoIs(query,sessionID="general"):
 
 call = multiFunctionCall({"whoIs":whoIs})
 firstQuestion="Hi, how are you?"
-chat = Chat("Example.template", reflections,call=call)
+chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Example.template"), reflections,call=call)
 chat.converse(firstQuestion)
-chat.save_template("test.template")
+#chat.save_template("test.template")
