@@ -599,6 +599,9 @@ class Chat(object):
         return string
 
     def __substituteFromClientStatement(self,match,prevResponse,extraSymbol="",sessionID = "general"):
+        """
+        Substitute from Client statement into respose
+        """
         prev = 0
         startPadding = 1+len(extraSymbol)
         finalResponse = ""
