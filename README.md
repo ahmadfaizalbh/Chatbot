@@ -1,6 +1,22 @@
 # Chatbot
 Python chatbot
 
+## Installation
+
+Install from PyPI:
+```sh
+pip install chatbotAI
+```
+
+install from github:
+```sh
+git clone https://github.com/ahmadfaizalbh/Chatbot.git
+cd Chatbot
+python setup.py install
+```
+
+## Sample Code (with wikipedia search API integration)
+
 ```python
 from chatbot import Chat,reflections,multiFunctionCall
 import wikipedia
@@ -36,7 +52,7 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 4. [Condition](#condition)
 5. [Change Topic](#change-topic)
 6. [Interact with python function](#interact-with-python-function)
-7. [Execute shell script](#execute-shell-script)
+7. [REST API integration](#rest-api-integration)
 8. [Topic based group](#topic-based-group)
 9. [Learn](#learn)
 10. [To upper case](#to-upper-case)
@@ -102,14 +118,56 @@ It will do a pattern match for statement
 {% call functionName: value %}
 ```
 
-## Execute shell script
-> ```
-[ cmd ]
+## REST API integration
+>### In API.json file
 ```
-Execute command in think mode
-> ```
-[! cmd ]
+{
+    "APIName":{
+        "auth" : {
+            "url":"https://your_rest_api_url/login.json",
+            "method":"POST",
+            "data":{
+                "user":"Your_Username",
+                "password":"Your_Password"
+            }
+        },
+        "MethodName" : {
+            "url":"https://your_rest_api_url/GET_method_Example.json",
+            "method":"GET",
+            "params":{
+                "key1":"value1",
+                "key2":"value2",
+                ...
+            },
+            "value_getter":[order in which data has to be picked from json response]
+        },
+        "MethodName1" : {
+            "url":"https://your_rest_api_url/GET_method_Example.json",
+            "method":"POST",
+            "data":{
+                "key1":"value1",
+                "key2":"value2",
+                ...
+            },
+            "value_getter":[order in which data has to be picked from json response]
+        },
+        "MethodName2" : {
+            ...
+        },
+        ...
+    },
+    "APIName2":{
+        ...
+    },
+    ...
+}
 ```
+*If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.`value_getter` consistes of list of keys in order using which info from json will be collected.*
+### In Template file
+```
+[ APIName:MethodName,Key1:value1 (,Key*:value*) ]
+```
+you can have any number of key value pair and all key value pair will override data or params depending on `method`, if `method` is `POST` then it overrides data and if method is `GET` then it overrides `params`.
 
 ## Topic based group 
 >```
