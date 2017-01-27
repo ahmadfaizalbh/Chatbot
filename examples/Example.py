@@ -1,6 +1,9 @@
 from chatbot import Chat,reflections,multiFunctionCall
 import wikipedia,os
 
+import warnings
+warnings.filterwarnings("ignore")
+
 def whoIs(query,sessionID="general"):
     try:
         return wikipedia.summary(query)

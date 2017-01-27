@@ -5,8 +5,8 @@
     {% endblock %}
 
     {% block %}
-        {% client %}list directory (.*){% endclient %}
-        {% response %}[ls -l %1]{% endresponse %}
+        {% client %}What is your name{% endclient %}
+        {% response %}My name is ChatBot{% endresponse %}
     {% endblock %}
 
     {% block %}
