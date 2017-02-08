@@ -1,5 +1,10 @@
 # Chatbot
-Python chatbot
+Python chatbot AI that helps in creating a python based chatbot with
+minimal coding. This provides both bots AI and chat handler and also
+allows easy integration of REST API's and python function calls which
+makes it unique and more powerful in functionality. This AI provides
+numerous features like learn, memory, conditional switch, topic-based
+conversation handling, etc.
 
 ## Installation
 
@@ -63,35 +68,36 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 ---
 
 ## Memory
-#### Set Memory
+> 
+> #### Set Memory
 > ```
 { variable : value }
 ```
-In think mode
+> In think mode
 ```
 {! variable : value }
 ```
-
-#### Get Memory
+>
+> #### Get Memory
 > ```
 { variable }
 ```
 
 ## Get matched group
-#### Get N<sup>th</sup> matched group of client pattern
+> #### Get N<sup>th</sup> matched group of client pattern
 > ```
 %N
 ```
-Example to get first matched
+> Example to get first matched
 > ```
 %1
 ```
-
-#### Get N<sup>th</sup> matched group of bots pattern
+> 
+> #### Get N<sup>th</sup> matched group of bots pattern
 > ```
 %!N
 ```
-Example to get first matched
+> Example to get first matched
 > ```
 %!1
 ```
@@ -101,7 +107,7 @@ Example to get first matched
 ```
 {% chat statement %}
 ```
-It will do a pattern match for statement
+> It will do a pattern match for statement
 
 ## Condition
 >``` 
@@ -119,8 +125,9 @@ It will do a pattern match for statement
 ```
 
 ## REST API integration
->### In API.json file
-```
+> 
+> ### In API.json file
+> ```
 {
     "APIName":{
         "auth" : {
@@ -162,15 +169,16 @@ It will do a pattern match for statement
     ...
 }
 ```
-*If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.`value_getter` consistes of list of keys in order using which info from json will be collected.*
-### In Template file
-```
+> *If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.`value_getter` consistes of list of keys in order using which info from json will be collected.*
+> 
+> ### In Template file
+> ```
 [ APIName:MethodName,Key1:value1 (,Key*:value*) ]
 ```
-you can have any number of key value pair and all key value pair will override data or params depending on `method`, if `method` is `POST` then it overrides data and if method is `GET` then it overrides `params`.
+> you can have any number of key value pair and all key value pair will override data or params depending on `method`, if `method` is `POST` then it overrides data and if method is `GET` then it overrides `params`.
 
 ## Topic based group 
->```
+> ```
 {% group topicName %}
   {% block %}
       {% client %}client says {% endclient %}
@@ -194,23 +202,23 @@ you can have any number of key value pair and all key value pair will override d
 {% endlearn %}
 ```
 
-# To upper case
->```
+## To upper case
+> ```
 {% up string %}
 ```
 
-# To lower case
->```
+## To lower case
+> ```
 {% low string %}
 ```
 
-# Capitalize
->```
+## Capitalize
+> ```
 {% cap string %}
 ```
 
-# Previous
->```
+## Previous
+> ```
 {% block %}
     {% client %}client's statement pattern{% endclient %}
     {% prev %}previous bot's statement pattern{% endprev %}
