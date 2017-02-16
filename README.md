@@ -225,3 +225,4 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
     {% response %}response string{% endresponse %}
 {% endblock %}
 ```
+![Chatbot AI flow Diagram](chat AI flow diagram.png)
