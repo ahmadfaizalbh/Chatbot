@@ -1,4 +1,5 @@
 import re,random,requests,urllib2,json
+from os import path
 from DefaultSubs import *
 
 reflections = {
@@ -50,7 +51,7 @@ class Topic:
         
     def __getitem__(self,key):
         topic = self.topic[key]
-        if topic in self.topics:
+        if topic in self.topics():
             return topic
         return '*'
 
@@ -71,6 +72,8 @@ class Chat(object):
         :rtype: None
         """
         self.__init__handler()
+        defaultpairs = self.__processTemplateFile(path.join(path.dirname(path.abspath(__file__)),
+                                                            "default.template"))
         try:
             if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
         except NameError as e:
@@ -85,15 +88,16 @@ class Chat(object):
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
         self._normalizer_regex = self._compile_reflections(normalizer)
+        self.__processLearn(defaultpairs)
         self.__processLearn(pairs)
         self._reflections = reflections
         self._regex = self._compile_reflections(reflections)
         self._memory = {"general":{}}
         self.conversation = {"general":[]}
         self.sessionID = "general"
-        self.attr = {"general":{"match":None,"pmatch":None,"_quote":False}}
+        self.attr = {"general":{"match":None,"pmatch":None,"_quote":False,"substitute":True}}
         self.call = call
-        self.topic = Topic(pairs.keys())
+        self.topic = Topic(self._pairs.keys)
         try:self._api = api if type(api)==dict else json.load(api)
         except:raise SyntaxError("Invalid value for api")
 
@@ -186,7 +190,8 @@ class Chat(object):
         pairs=[]
         if pos[i][2]!="group":
             raise SyntaxError(self.__errorMessage('group',pos[i][2]))
-        name = pos[i][3] if pos[i][3] else '*'
+        name = pos[i][3].strip() 
+        if not name:name = '*'
         i+=1
         while pos[i][2]!="endgroup":
             p,within = self.__blockTags(text,pos[i:])
@@ -199,7 +204,7 @@ class Chat(object):
             text = template.read()
         pos = [(m.start(0),m.end(0),text[m.start(1):m.end(1)],text[m.start(4):m.end(4)]) \
                 for m in  re.finditer( 
-                    r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]|%(?=[^}]))*%}',
+                    r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]*|%(?=[^}]))%}',
                     text)
               ]
         groups = {}
@@ -244,7 +249,7 @@ class Chat(object):
     def _startNewSession(self,sessionID):
         self._memory[sessionID]={}
         self.conversation[sessionID]=[]
-        self.attr[sessionID]={"match":None,"pmatch":None,"_quote":False}
+        self.attr[sessionID]={"match":None,"pmatch":None,"_quote":False,"substitute":True}
         self.topic[sessionID] = '*'
 
     def _restructure(self,group,index=None):
@@ -400,7 +405,9 @@ class Chat(object):
         :param str: The string to be mapped
         :rtype: str
         """
-
+        try:
+            if not self.attr["substitute"]:return str
+        except:pass
         return self._regex.sub(lambda mo:
                 self._reflections[mo.string[mo.start():mo.end()]],
                     str.lower())
@@ -470,7 +477,11 @@ class Chat(object):
                                 )
     
     def __chat_handler(self,i,condition,response,sessionID):
-        return self.respond(self.__handler(condition[i],response,"chat",sessionID),sessionID =sessionID)
+        substitute = "substitute" not in self.attr or self.attr["substitute"]
+        self.attr["substitute"] = False
+        response = self.respond(self.__handler(condition[i],response,"chat",sessionID),sessionID =sessionID)
+        self.attr["substitute"] = substitute
+        return response
     
     def __low_handler(self,i,condition,response,sessionID):
         return self.__handler(condition[i],response,"low",sessionID).lower()
