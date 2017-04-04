@@ -20,6 +20,18 @@ cd Chatbot
 python setup.py install
 ```
 
+## Demo
+```python
+>>> from chatbot import demo
+>>> demo()
+Hi, how are you?
+> i'm fine
+Nice to know that you are fine  
+> quit
+Thank you for talking with me.
+>>> 
+```
+
 ## Sample Code (with wikipedia search API integration)
 
 ```python
