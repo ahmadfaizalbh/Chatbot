@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name = 'chatbotAI',
-    version='0.1.2.1',
+    version='0.1.2.4',
     author = "Ahmad Faizal B H",
     author_email = "ahmadfaizalbh726@gmail.com",
     url="https://github.com/ahmadfaizalbh/Chatbot",
@@ -16,5 +16,8 @@ setup(
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
     package_dir={ 'chatbot': 'chatbot'},
     include_package_data = True,
-    package_data   = { "chatbot":  ["default.template"]}   
+    package_data   = { "chatbot":  ["default.template"]},
+    install_requires=[
+          'requests',
+      ]
 )

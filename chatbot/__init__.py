@@ -1,7 +1,12 @@
-import re,random,requests,urllib2,json
+import re,random,requests,json
 from os import path
-from DefaultSubs import *
-
+from .DefaultSubs import *
+try:
+  from urllib import quote
+except ImportError as e:
+  from urllib.parse import quote
+  
+  
 reflections = {
   "i am"       : "you are",
   "i was"      : "you were",
@@ -743,4 +748,8 @@ class Chat(object):
                 self.conversation[sessionID].append(self.respond(input_sentence,sessionID=sessionID))
                 print (self.conversation[sessionID][-1])
 
+
+def demo():
+    firstQuestion="Hi, how are you?"
+    Chat(()).converse(firstQuestion)
 
