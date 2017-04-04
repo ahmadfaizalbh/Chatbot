@@ -68,66 +68,66 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 ---
 
 ## Memory
-> 
-> #### Set Memory
-> ```
+
+#### Set Memory
+```
 { variable : value }
 ```
-> In think mode
+In think mode
 ```
 {! variable : value }
 ```
->
-> #### Get Memory
-> ```
+
+#### Get Memory
+```
 { variable }
 ```
 
 ## Get matched group
-> #### Get N<sup>th</sup> matched group of client pattern
-> ```
+#### Get N<sup>th</sup> matched group of client pattern
+```
 %N
 ```
-> Example to get first matched
-> ```
+Example to get first matched
+```
 %1
 ```
-> 
-> #### Get N<sup>th</sup> matched group of bots pattern
-> ```
+
+#### Get N<sup>th</sup> matched group of bots pattern
+```
 %!N
 ```
-> Example to get first matched
-> ```
+Example to get first matched
+```
 %!1
 ```
 
 ## Recursion
-> Get response as if client said this new statement
+Get response as if client said this new statement
 ```
 {% chat statement %}
 ```
-> It will do a pattern match for statement
+It will do a pattern match for statement
 
 ## Condition
->``` 
+``` 
 {% if condition %} do this first {% elif condition %} do this next {% else %} do otherwise {% endif %}
 ```
 
 ## Change Topic
-> ```
+```
 {% topic TopicName %}
 ```
 
 ## Interact with python function
-> ```
+```
 {% call functionName: value %}
 ```
 
 ## REST API integration
-> 
-> ### In API.json file
-> ```
+ 
+### In API.json file
+ ```
 {
     "APIName":{
         "auth" : {
@@ -169,16 +169,16 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
     ...
 }
 ```
-> *If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.`value_getter` consistes of list of keys in order using which info from json will be collected.*
-> 
-> ### In Template file
-> ```
+*If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.`value_getter` consistes of list of keys in order using which info from json will be collected.*
+
+### In Template file
+```
 [ APIName:MethodName,Key1:value1 (,Key*:value*) ]
 ```
-> you can have any number of key value pair and all key value pair will override data or params depending on `method`, if `method` is `POST` then it overrides data and if method is `GET` then it overrides `params`.
+you can have any number of key value pair and all key value pair will override data or params depending on `method`, if `method` is `POST` then it overrides data and if method is `GET` then it overrides `params`.
 
 ## Topic based group 
-> ```
+```
 {% group topicName %}
   {% block %}
       {% client %}client says {% endclient %}
@@ -189,7 +189,7 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 ```
 
 ## Learn
-> ```
+```
 {% learn %}
   {% group topicName %}
     {% block %}
@@ -203,22 +203,22 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 ```
 
 ## To upper case
-> ```
+```
 {% up string %}
 ```
 
 ## To lower case
-> ```
+```
 {% low string %}
 ```
 
 ## Capitalize
-> ```
+```
 {% cap string %}
 ```
 
 ## Previous
-> ```
+```
 {% block %}
     {% client %}client's statement pattern{% endclient %}
     {% prev %}previous bot's statement pattern{% endprev %}
@@ -226,4 +226,6 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 {% endblock %}
 ```
 
-![Chatbot AI flow Diagram](images/ChatBot AI.png)
+
+![Chatbot AI flow Diagram](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/ChatBot%20AI.png)
+
