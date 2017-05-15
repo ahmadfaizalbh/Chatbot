@@ -194,7 +194,7 @@ you can have any number of key value pair and all key value pair will override d
 {% group topicName %}
   {% block %}
       {% client %}client says {% endclient %}
-      {% response %}response test% endresponse %}
+      {% response %}response text{% endresponse %}
   {% endblock %}
   ...
 {% endgroup %}
@@ -206,7 +206,7 @@ you can have any number of key value pair and all key value pair will override d
   {% group topicName %}
     {% block %}
         {% client %}client says {% endclient %}
-        {% response %}response test% endresponse %}
+        {% response %}response text{% endresponse %}
     {% endblock %}
     ...
   {% endgroup %}
