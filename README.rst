@@ -253,7 +253,7 @@ Topic based group
     {% group topicName %}
       {% block %}
           {% client %}client says {% endclient %}
-          {% response %}response test% endresponse %}
+          {% response %}response text{% endresponse %}
       {% endblock %}
       ...
     {% endgroup %}
@@ -267,7 +267,7 @@ Learn
       {% group topicName %}
         {% block %}
             {% client %}client says {% endclient %}
-            {% response %}response test% endresponse %}
+            {% response %}response text{% endresponse %}
         {% endblock %}
         ...
       {% endgroup %}
