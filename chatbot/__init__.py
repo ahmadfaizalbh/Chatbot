@@ -2,7 +2,7 @@ import re,random,requests,json
 from os import path
 from .DefaultSubs import *
 try:
-  from urllib import quote
+  from urllib.parse import quote
 except ImportError as e:
   from urllib.parse import quote
   
@@ -80,7 +80,7 @@ class Chat(object):
         defaultpairs = self.__processTemplateFile(path.join(path.dirname(path.abspath(__file__)),
                                                             "default.template"))
         try:
-            if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
+            if type(pairs) in (str,str):pairs = self.__processTemplateFile(pairs)
         except NameError as e:
             if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
         self._pairs = {'*':[]} 
@@ -329,7 +329,7 @@ class Chat(object):
                         pos = append_group(i,i)
                         for j in range(i,pos): del group[index[j]]
                         i += pos
-            elif group[index[i]]["action"] in self.__action_handlers .keys():
+            elif group[index[i]]["action"] in list(self.__action_handlers.keys()):
                 orderedGroup.append(group[index[i]])
                 i += 1
             else:return i,orderedGroup
@@ -397,7 +397,7 @@ class Chat(object):
         return group
     
     def _compile_reflections(self,normal):
-        sorted_refl = sorted(normal.keys(), key=len, reverse=True)
+        sorted_refl = sorted(list(normal.keys()), key=len, reverse=True)
         return  re.compile(r"\b({0})\b".format("|".join(map(re.escape,
             sorted_refl))), re.IGNORECASE)
 
@@ -610,8 +610,8 @@ class Chat(object):
     
     def _quote(self,string,sessionID):
         if self.attr[sessionID]["_quote"]:
-            try:return urllib2.quote(string)
-            except:return urllib2.quote(string.encode("UTF-8"))
+            try:return urllib.parse.quote(string)
+            except:return urllib.parse.quote(string.encode("UTF-8"))
         return string
 
     def __substituteFromClientStatement(self,match,prevResponse,extraSymbol="",sessionID = "general"):
@@ -632,7 +632,7 @@ class Chat(object):
             prevResponse = finalResponse + prevResponse[prev:]
             finalResponse = ""
             prev = 0
-            for m in re.finditer(r'%'+extraSymbol+'('+'|'.join(namedGroup.keys())+')([^a-zA-Z_0-9]|$)', prevResponse):
+            for m in re.finditer(r'%'+extraSymbol+'('+'|'.join(list(namedGroup.keys()))+')([^a-zA-Z_0-9]|$)', prevResponse):
                 start = m.start(1)
                 end = m.end(1)
                 finalResponse += prevResponse[prev:start]
@@ -746,7 +746,7 @@ class Chat(object):
                 self.conversation[sessionID].append(input_sentence)
                 while input_sentence[-1] in "!.": input_sentence = input_sentence[:-1]
                 self.conversation[sessionID].append(self.respond(input_sentence,sessionID=sessionID))
-                print (self.conversation[sessionID][-1])
+                print((self.conversation[sessionID][-1]))
 
 
 def demo():
