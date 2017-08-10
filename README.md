@@ -6,6 +6,9 @@ makes it unique and more powerful in functionality. This AI provides
 numerous features like learn, memory, conditional switch, topic-based
 conversation handling, etc.
 
+
+![Demo](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo.gif)
+
 ## Installation
 
 Install from PyPI:
