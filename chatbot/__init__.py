@@ -64,10 +64,10 @@ class Topic:
     
     def __setitem__(self,key,value):
         value = value.strip()
-        if value[0]=".":
+        if value[0]==".":
             index=1
             current_topic = self.topic[key].split(".")
-            while value[index]=".":
+            while value[index]==".":
                 index+=1
                 current_topic.pop()
             current_topic.append(value[index:])
@@ -103,12 +103,12 @@ class Chat(object):
             if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
         except NameError as e:
             if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
-        self._pairs = {'':[]} 
+        self._pairs = {'':{"pairs":[],"defaults":[]}} 
         if type(pairs)==dict:
             if not '' in pairs:
                 raise KeyError("Default topic missing")   
         else:
-            pairs = {'':pairs}
+            pairs = {'':{"pairs":pairs,"defaults":[]}}
         self._normalizer = dict(normalizer)
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
@@ -183,7 +183,7 @@ class Chat(object):
                 withinblock["learn"]={}
                 index = self.__GroupTags(text,pos,withinblock["learn"],(lambda i:pos[i][2]!="endlearn"),length,index+1)
             elif pos[index][2]=="response":
-                withinblock["response"].append(__responseTags(self,text,pos,index))
+                withinblock["response"].append(self.__responseTags(text,pos,index))
                 index+=1
             elif pos[index][2]=="client":
                 index+=1
@@ -210,12 +210,12 @@ class Chat(object):
             if pos[index][2]=="block":
                 p,within = self.__blockTags(text,pos,length,index+1)
                 pairs.append(within)
-                index+=p
+                index=p
             elif pos[index][2]=="response":
-                defaults.append(__responseTags(self,text,pos,index+1))
+                defaults.append(self.__responseTags(text,pos,index))
                 index+=2
             elif pos[index][2]=="group":
-                index = __GroupTags(self,text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=name+"."+pos[index][3].strip())
+                index = self.__GroupTags(text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=name+"."+pos[index][3].strip())
             else:
                 raise SyntaxError(self.__errorMessage('group, block, or response',pos[index][2]))
         if name in groups:
@@ -241,8 +241,9 @@ class Chat(object):
     def __processLearn(self,pairs):
         for topic in pairs:
             if topic not in self._pairs:
-                self._pairs[topic]=[] 
-            for p in pairs[topic][::-1]:
+                self._pairs[topic]={"pairs":[],"defaults":[]}
+            self._pairs[topic]["defaults"].extend([(i,self._condition(i)) for i in pairs[topic].get("defaults",[])])
+            for p in pairs[topic]["pairs"][::-1]:
                 l={}
                 y = None
                 if len(p)<2:
@@ -262,9 +263,9 @@ class Chat(object):
                     raise TypeError("Invalid Type for learn expected dict got '%s'" % type(l).__name__)
                 z=tuple((i,self._condition(i)) for i in z)
                 if y:
-                    self._pairs[topic].insert(0,(re.compile(self.__normalize(x), re.IGNORECASE),re.compile(self.__normalize(y), re.IGNORECASE),z,l))
+                    self._pairs[topic]["pairs"].insert(0,(re.compile(self.__normalize(x), re.IGNORECASE),re.compile(self.__normalize(y), re.IGNORECASE),z,l))
                 else:
-                    self._pairs[topic].insert(0,(re.compile(x, re.IGNORECASE),y,z,l))
+                    self._pairs[topic]["pairs"].insert(0,(re.compile(x, re.IGNORECASE),y,z,l))
         
     
     def _startNewSession(self,sessionID):
@@ -729,7 +730,7 @@ class Chat(object):
         pos=1
         while not self._pairs[current_topic]["defaults"]:
             current_topic = ".".join(current_topic_order[:-pos])
-            pos + = 1
+            pos += 1
         resp = random.choice(self._pairs[self.topic[sessionID]]["defaults"])
         resp = self._wildcards(resp, dummyMatch(match), None, sessionID = sessionID) # process wildcards
         # fix munged punctuation at the end
