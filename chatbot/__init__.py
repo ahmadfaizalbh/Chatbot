@@ -46,19 +46,39 @@ class multiFunctionCall:
         except:s = string
         return re.sub(r'\\([\[\]{}%:])',r"\1",func(re.sub(r'([\[\]{}%:])',r"\\\1",s),sessionID =sessionID))
 
+class dummyMatch:
+    def __init__(self,string):
+        self.string = string
+
+    def group(self,index):
+        if index==0:return self.string
+        raise IndexError("no such group")
+
+    def groupdict(self,*arg,**karg):
+        return {}
+
 class Topic:
     def __init__(self,topics):
-        self.topic={"general":'*'}
+        self.topic={"general":''}
         self.topics = topics
     
     def __setitem__(self,key,value):
-        self.topic[key]=value.strip()
+        value = value.strip()
+        if value[0]=".":
+            index=1
+            current_topic = self.topic[key].split(".")
+            while value[index]=".":
+                index+=1
+                current_topic.pop()
+            current_topic.append(value[index:])
+            value = ".".join(current_topic)
+        self.topic[key]=value
         
     def __getitem__(self,key):
         topic = self.topic[key]
         if topic in self.topics():
             return topic
-        return '*'
+        return ''
 
 class Chat(object):
     def __init__(self, pairs, reflections={}, call=multiFunctionCall(), api={}, normalizer=defaultNormal):
@@ -83,12 +103,12 @@ class Chat(object):
             if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
         except NameError as e:
             if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
-        self._pairs = {'*':[]} 
+        self._pairs = {'':[]} 
         if type(pairs)==dict:
-            if not '*' in pairs:
-                raise KeyError("Topic '*' missing")   
+            if not '' in pairs:
+                raise KeyError("Default topic missing")   
         else:
-            pairs = {'*':pairs}
+            pairs = {'':pairs}
         self._normalizer = dict(normalizer)
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
@@ -149,60 +169,61 @@ class Chat(object):
 
     def __errorMessage(self,expected,found):
         return "Expected '%s' tag found '%s'" % (expected,found)
-    
-    def __blockTags(self,text,pos):
-        i=0
-        if pos[i][2]!="block":
-                raise SyntaxError(self.__errorMessage("block",pos[i][2]))
-        i+=1
+
+    def __responseTags(self,text,pos,index):
+        next_index=index+1
+        if pos[next_index][2]!="endresponse":
+            raise SyntaxError(self.__errorMessage("endresponse",pos[next_index][2]))
+        return text[pos[index][1]:pos[next_index][0]].strip(" \t\n")
+              
+    def __blockTags(self,text,pos,length,index):
         withinblock = {"learn":{},"response":[],"client":[],"prev":[]}
-        while pos[i][2]!="endblock":
-            if pos[i][2]=="learn":
-                i+=1
-                while pos[i][2]!="endlearn":
-                    p,name,pairs = self.__GroupTags(text,pos[i:])
-                    i+=p
-                    if name in withinblock["learn"]:
-                        withinblock["learn"][name].extend(pairs)
-                    else:
-                        withinblock["learn"][name]=pairs
-            elif pos[i][2]=="response":
-                i+=1
-                if pos[i][2]!="endresponse":
-                    raise SyntaxError(self.__errorMessage("endresponse",pos[i][2]))
-                withinblock["response"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
-            elif pos[i][2]=="client":
-                i+=1
-                if pos[i][2]!="endclient":
-                    raise SyntaxError(self.__errorMessage("endclient",pos[i][2]))
-                withinblock["client"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
-            elif pos[i][2]=="prev":
-                i+=1
-                if pos[i][2]!="endprev":
-                    raise SyntaxError(self.__errorMessage("endprev",pos[i][2]))
-                withinblock["prev"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
+        while pos[index][2]!="endblock":
+            if pos[index][2]=="learn":
+                withinblock["learn"]={}
+                index = self.__GroupTags(text,pos,withinblock["learn"],(lambda i:pos[i][2]!="endlearn"),length,index+1)
+            elif pos[index][2]=="response":
+                withinblock["response"].append(__responseTags(self,text,pos,index))
+                index+=1
+            elif pos[index][2]=="client":
+                index+=1
+                if pos[index][2]!="endclient":
+                    raise SyntaxError(self.__errorMessage("endclient",pos[index][2]))
+                withinblock["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
+            elif pos[index][2]=="prev":
+                index+=1
+                if pos[index][2]!="endprev":
+                    raise SyntaxError(self.__errorMessage("endprev",pos[index][2]))
+                withinblock["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             else:
-                raise NameError("Invalid Tag '%s'" %  pos[i][2])
-            i+=1
-        return i+1,(withinblock["client"][0],
+                raise NameError("Invalid Tag '%s'" %  pos[index][2])
+            index+=1
+        return index+1,(withinblock["client"][0],
                     withinblock["prev"][0] if withinblock["prev"] else None,
                     withinblock["response"],
                     withinblock["learn"] )
     
-    def __GroupTags(self,text,pos):
-        i=0
-        num = len(pos)
+    def __GroupTags(self,text,pos,groups,condition,length,index=0,name=""):
         pairs=[]
-        if pos[i][2]!="group":
-            raise SyntaxError(self.__errorMessage('group',pos[i][2]))
-        name = pos[i][3].strip() 
-        if not name:name = '*'
-        i+=1
-        while pos[i][2]!="endgroup":
-            p,within = self.__blockTags(text,pos[i:])
-            pairs.append(within)
-            i+=p
-        return i+1,name,pairs
+        defaults=[]
+        while condition(index):
+            if pos[index][2]=="block":
+                p,within = self.__blockTags(text,pos,length,index+1)
+                pairs.append(within)
+                index+=p
+            elif pos[index][2]=="response":
+                defaults.append(__responseTags(self,text,pos,index+1))
+                index+=2
+            elif pos[index][2]=="group":
+                index = __GroupTags(self,text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=name+"."+pos[index][3].strip())
+            else:
+                raise SyntaxError(self.__errorMessage('group, block, or response',pos[index][2]))
+        if name in groups:
+            groups[name]["pairs"].extend(pairs)
+            groups[name]["defaults"].extend(defaults)
+        else:
+            groups[name]={"pairs":pairs,"defaults":defaults}
+        return index+1
         
     def __processTemplateFile(self,fileName):
         with open(fileName) as template:
@@ -212,14 +233,9 @@ class Chat(object):
                     r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]*|%(?=[^}]))%}',
                     text)
               ]
+        length = len(pos)
         groups = {}
-        while pos:
-            i,name,pairs = self.__GroupTags(text,pos)
-            if name in groups:
-                groups[name].extend(pairs)
-            else:
-                groups[name]=pairs
-            pos = pos[i:]
+        self.__GroupTags(text,pos,groups,(lambda i:i<length),length)
         return groups
         
     def __processLearn(self,pairs):
@@ -255,7 +271,7 @@ class Chat(object):
         self._memory[sessionID]={}
         self.conversation[sessionID]=[]
         self.attr[sessionID]={"match":None,"pmatch":None,"_quote":False,"substitute":True}
-        self.topic[sessionID] = '*'
+        self.topic[sessionID] = ''
 
     def _restructure(self,group,index=None):
         if index==None:
@@ -625,19 +641,23 @@ class Chat(object):
             start = m.start(0)
             end = m.end(0)     
             num = int(prevResponse[start+startPadding:end])
-            finalResponse += prevResponse[prev:start] + self._quote(self._substitute(match.group(num)),sessionID)
+            finalResponse += prevResponse[prev:start]
+            try:finalResponse += self._quote(self._substitute(match.group(num)),sessionID)
+            except IndexError as e:pass
             prev = end
         namedGroup = match.groupdict()
         if namedGroup:
             prevResponse = finalResponse + prevResponse[prev:]
             finalResponse = ""
             prev = 0
-            for m in re.finditer(r'%'+extraSymbol+'('+'|'.join(namedGroup.keys())+')([^a-zA-Z_0-9]|$)', prevResponse):
+            for m in re.finditer(r'%'+extraSymbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prevResponse):
                 start = m.start(1)
                 end = m.end(1)
                 finalResponse += prevResponse[prev:start]
-                value = namedGroup[prevResponse[start+startPadding:end]]
-                if value:finalResponse += self._quote(self._substitute(value),sessionID)
+                try:
+                    value = namedGroup[prevResponse[start+startPadding:end]]
+                    if value:finalResponse += self._quote(self._substitute(value),sessionID)
+                except KeyError as e:pass
                 prev = end
         return finalResponse + prevResponse[prev:]
     
@@ -686,7 +706,7 @@ class Chat(object):
         # check each pattern
         text =  self.__normalize(text)
         previousText = self.__normalize(self.conversation[sessionID][-2])
-        for (pattern, parent, response,learn) in self._pairs[self.topic[sessionID]]:
+        for (pattern, parent, response,learn) in self._pairs[self.topic[sessionID]]["pairs"]:
             match = pattern.match(text)
             parentMatch = parent.match(previousText) if parent!=None else True
             # did the pattern match?
@@ -704,6 +724,13 @@ class Chat(object):
                         for topic in learn}
                     self.__processLearn(learn)
                 return resp
+        if self._pairs[self.topic[sessionID]]["defaults"]:
+            resp = random.choice(self._pairs[self.topic[sessionID]]["defaults"])
+            resp = self._wildcards(resp, dummyMatch(match), None, sessionID = sessionID) # process wildcards
+            # fix munged punctuation at the end
+            if resp[-2:] == '?.': resp = resp[:-2] + '.'
+            if resp[-2:] == '??': resp = resp[:-2] + '?'
+            return resp
                 
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
