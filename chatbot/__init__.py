@@ -724,13 +724,18 @@ class Chat(object):
                         for topic in learn}
                     self.__processLearn(learn)
                 return resp
-        if self._pairs[self.topic[sessionID]]["defaults"]:
-            resp = random.choice(self._pairs[self.topic[sessionID]]["defaults"])
-            resp = self._wildcards(resp, dummyMatch(match), None, sessionID = sessionID) # process wildcards
-            # fix munged punctuation at the end
-            if resp[-2:] == '?.': resp = resp[:-2] + '.'
-            if resp[-2:] == '??': resp = resp[:-2] + '?'
-            return resp
+        current_topic = self.topic[sessionID]
+        current_topic_order = current_topic.split()
+        pos=1
+        while not self._pairs[current_topic]["defaults"]:
+            current_topic = ".".join(current_topic_order[:-pos])
+            pos + = 1
+        resp = random.choice(self._pairs[self.topic[sessionID]]["defaults"])
+        resp = self._wildcards(resp, dummyMatch(match), None, sessionID = sessionID) # process wildcards
+        # fix munged punctuation at the end
+        if resp[-2:] == '?.': resp = resp[:-2] + '.'
+        if resp[-2:] == '??': resp = resp[:-2] + '?'
+        return resp
                 
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
