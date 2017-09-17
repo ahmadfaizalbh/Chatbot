@@ -721,7 +721,7 @@ class Chat(object):
         if resp[-2:] == '?.': resp = resp[:-2] + '.'
         if resp[-2:] == '??': resp = resp[:-2] + '?'
         return resp
-      #raise ValueError("No match found")
+      raise ValueError("No match found")
       
     def respond(self, text, sessionID = "general"):
         """
@@ -736,9 +736,8 @@ class Chat(object):
         current_topic = self.topic[sessionID]
         current_topic_order = current_topic.split(".")
         while current_topic_order:
-          return self.__response_on_topic(text, previousText, current_topic, sessionID)
-          #try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
-          #except ValueError as e:pass
+          try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
+          except ValueError as e:pass
           current_topic_order.pop()
           current_topic = ".".join(current_topic_order) # process wildcards
 
