@@ -81,7 +81,7 @@ class Topic:
         return ''
 
 class Chat(object):
-    def __init__(self, pairs, reflections={}, call=multiFunctionCall(), api={}, normalizer=defaultNormal):
+    def __init__(self, pairs=(), reflections=reflections, call=multiFunctionCall(), api={}, normalizer=defaultNormal,default_template=path.join(path.dirname(path.abspath(__file__)),"default.template")):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -97,8 +97,7 @@ class Chat(object):
         :rtype: None
         """
         self.__init__handler()
-        defaultpairs = self.__processTemplateFile(path.join(path.dirname(path.abspath(__file__)),
-                                                            "default.template"))
+        defaultpairs = self.__processTemplateFile(default_template)
         try:
             if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
         except NameError as e:
@@ -427,9 +426,7 @@ class Chat(object):
         :param str: The string to be mapped
         :rtype: str
         """
-        try:
-            if not self.attr["substitute"]:return str
-        except:pass
+        if not self.attr.get("substitute",True):return str
         return self._regex.sub(lambda mo:
                 self._reflections[mo.string[mo.start():mo.end()]],
                     str.lower())
@@ -462,6 +459,8 @@ class Chat(object):
         matchedIndex = None
         _quote = self.attr[sessionID]["_quote"]
         self.attr[sessionID]["_quote"] = False
+        substitute = self.attr.get("substitute",True)
+        self.attr["substitute"] = False
         while check:
             con = self._checkAndEvaluateCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
             i+=1
@@ -481,6 +480,7 @@ class Chat(object):
             elif condition[i]["action"] == "endif":
                 check = False
         self.attr[sessionID]["_quote"] = _quote
+        self.attr["substitute"] = substitute
         return ((self._checkAndEvaluateCondition(
                                 response,
                                 condition[matchedIndex]["within"],
@@ -499,7 +499,7 @@ class Chat(object):
                                 )
     
     def __chat_handler(self,i,condition,response,sessionID):
-        substitute = "substitute" not in self.attr or self.attr["substitute"]
+        substitute = self.attr.get("substitute",True)
         self.attr["substitute"] = False
         response = self.respond(self.__handler(condition[i],response,"chat",sessionID),sessionID =sessionID)
         self.attr["substitute"] = substitute
@@ -695,19 +695,9 @@ class Chat(object):
         self.attr[sessionID]["pmatch"]=parentMatch
         response,condition =  response
         return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvaluateCondition(response,condition,sessionID = sessionID ))
-        
-    def respond(self, text, sessionID = "general"):
-        """
-        Generate a response to the user input.
 
-        :type text: str
-        :param text: The string to be mapped
-        :rtype: str
-        """
-        # check each pattern
-        text =  self.__normalize(text)
-        previousText = self.__normalize(self.conversation[sessionID][-2])
-        for (pattern, parent, response,learn) in self._pairs[self.topic[sessionID]]["pairs"]:
+    def __response_on_topic(self, text, previousText, current_topic, sessionID = "general"):
+      for (pattern, parent, response,learn) in self._pairs[current_topic]["pairs"]:# check each pattern
             match = pattern.match(text)
             parentMatch = parent.match(previousText) if parent!=None else True
             # did the pattern match?
@@ -725,18 +715,34 @@ class Chat(object):
                         for topic in learn}
                     self.__processLearn(learn)
                 return resp
-        current_topic = self.topic[sessionID]
-        current_topic_order = current_topic.split()
-        pos=1
-        while not self._pairs[current_topic]["defaults"]:
-            current_topic = ".".join(current_topic_order[:-pos])
-            pos += 1
-        resp = random.choice(self._pairs[self.topic[sessionID]]["defaults"])
-        resp = self._wildcards(resp, dummyMatch(match), None, sessionID = sessionID) # process wildcards
-        # fix munged punctuation at the end
+      if self._pairs[current_topic]["defaults"]:
+        resp = self._wildcards(random.choice(self._pairs[current_topic]["defaults"]),
+                               dummyMatch(match), None, sessionID = sessionID)
         if resp[-2:] == '?.': resp = resp[:-2] + '.'
         if resp[-2:] == '??': resp = resp[:-2] + '?'
         return resp
+      #raise ValueError("No match found")
+      
+    def respond(self, text, sessionID = "general"):
+        """
+        Generate a response to the user input.
+
+        :type text: str
+        :param text: The string to be mapped
+        :rtype: str
+        """
+        text =  self.__normalize(text)
+        previousText = self.__normalize(self.conversation[sessionID][-2])
+        current_topic = self.topic[sessionID]
+        current_topic_order = current_topic.split(".")
+        while current_topic_order:
+          return self.__response_on_topic(text, previousText, current_topic, sessionID)
+          #try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
+          #except ValueError as e:pass
+          current_topic_order.pop()
+          current_topic = ".".join(current_topic_order) # process wildcards
+
+        
                 
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
@@ -784,5 +790,5 @@ class Chat(object):
 
 def demo():
     firstQuestion="Hi, how are you?"
-    Chat(()).converse(firstQuestion)
+    Chat().converse(firstQuestion)
 
