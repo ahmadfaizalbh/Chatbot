@@ -709,12 +709,6 @@ class Chat(object):
                         for topic in learn}
                     self.__processLearn(learn)
                 return resp
-      if self._pairs[current_topic]["defaults"]:
-        resp = self._wildcards(random.choice(self._pairs[current_topic]["defaults"]),
-                               dummyMatch(match), None, sessionID = sessionID)
-        if resp[-2:] == '?.': resp = resp[:-2] + '.'
-        if resp[-2:] == '??': resp = resp[:-2] + '?'
-        return resp
       raise ValueError("No match found")
       
     def respond(self, text, sessionID = "general"):
@@ -729,14 +723,21 @@ class Chat(object):
         previousText = self.__normalize(self.conversation[sessionID][-2])
         current_topic = self.topic[sessionID]
         current_topic_order = current_topic.split(".")
+        topic_hierarchy=[]
         while current_topic_order:
           try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
           except ValueError as e:pass
           current_topic_order.pop()
-          current_topic = ".".join(current_topic_order) # process wildcards
-
-        
-                
+          current_topic = ".".join(current_topic_order)
+          topic_hierarchy.append(current_topic)
+        for topic in topic_hierarchy:
+          if self._pairs[topic]["defaults"]:
+            resp = self._wildcards(random.choice(self._pairs[topic]["defaults"]),
+                                   dummyMatch(match), None, sessionID = sessionID)
+            if resp[-2:] == '?.': resp = resp[:-2] + '.'
+            if resp[-2:] == '??': resp = resp[:-2] + '?'
+            return resp
+    
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
             (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
