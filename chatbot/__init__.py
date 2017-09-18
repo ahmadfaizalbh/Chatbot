@@ -236,36 +236,30 @@ class Chat(object):
         groups = {}
         self.__GroupTags(text,pos,groups,(lambda i:i<length),length)
         return groups
-        
+    
+    def __build_pattern(self,pattern):
+      if text!=None:return re.compile(self.__normalize(pattern), re.IGNORECASE)
+    
     def __processLearn(self,pairs):
         for topic in pairs:
-            if topic not in self._pairs:
-                self._pairs[topic]={"pairs":[],"defaults":[]}
-            self._pairs[topic]["defaults"].extend([(i,self._condition(i)) for i in pairs[topic].get("defaults",[])])
-            for p in pairs[topic]["pairs"][::-1]:
-                l={}
-                y = None
-                if len(p)<2:
-                    raise ValueError("Response not specified")
-                elif len(p)==2:
-                    if type(p[1]) not in (tuple,list):
-                        raise ValueError("Response not specified")
-                    x,z = p
-                elif len(p)==3:
-                    if type(p[1]) not in (tuple,list):
-                       x,y,z = p
-                    else:
-                        x,z,l = p
-                else:
-                    x,y,z,l = p[:4]
-                if type(l) != dict:
+            if topic not in self._pairs:self._pairs[topic]={"pairs":[],"defaults":[]}
+            self._pairs[topic]["defaults"].extend([(i,self._condition(i)) 
+                                                    for i in pairs[topic].get("defaults",[])])
+            for pair in pairs[topic]["pairs"][::-1]:
+                learn, previous = {}, None
+                length = len(pair)
+                if length>3:client,previous,responses,learn = pair[:4]
+                elif length==3:
+                    if type(pair[1]) in (tuple,list):client,responses,learn = pair
+                    else:client,previous,responses = pair
+                elif length==2 and type(pair[1]) in (tuple,list):client,responses = pair
+                else:raise ValueError("Response not specified")
+                if type(learn) != dict:
                     raise TypeError("Invalid Type for learn expected dict got '%s'" % type(l).__name__)
-                z=tuple((i,self._condition(i)) for i in z)
-                if y:
-                    self._pairs[topic]["pairs"].insert(0,(re.compile(self.__normalize(x), re.IGNORECASE),re.compile(self.__normalize(y), re.IGNORECASE),z,l))
-                else:
-                    self._pairs[topic]["pairs"].insert(0,(re.compile(x, re.IGNORECASE),y,z,l))
-        
+                self._pairs[topic]["pairs"].insert(0,(self.__build_pattern(client),
+                                                      self.__build_pattern(previous),
+                                                      tuple((i,self._condition(i)) for i in responses),
+                                                      learn))
     
     def _startNewSession(self,sessionID):
         self._memory[sessionID]={}
