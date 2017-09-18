@@ -16,7 +16,7 @@ setup(
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
     package_dir={ 'chatbot': 'chatbot',},
     include_package_data = True,
-    package_data   = { "chatbot":  ["default.template"]},
+    package_data   = { "chatbot":  ["default.template","spellcheck/words.txt"]},
     install_requires=[
           'requests',
       ]
