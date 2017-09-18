@@ -238,7 +238,7 @@ class Chat(object):
         return groups
     
     def __build_pattern(self,pattern):
-      if text!=None:return re.compile(self.__normalize(pattern), re.IGNORECASE)
+      if pattern!=None:return re.compile(self.__normalize(pattern), re.IGNORECASE)
     
     def __processLearn(self,pairs):
         for topic in pairs:
