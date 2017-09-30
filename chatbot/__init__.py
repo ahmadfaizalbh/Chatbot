@@ -46,22 +46,42 @@ class multiFunctionCall:
         except:s = string
         return re.sub(r'\\([\[\]{}%:])',r"\1",func(re.sub(r'([\[\]{}%:])',r"\\\1",s),sessionID =sessionID))
 
+class dummyMatch:
+    def __init__(self,string):
+        self.string = string
+
+    def group(self,index):
+        if index==0:return self.string
+        raise IndexError("no such group")
+
+    def groupdict(self,*arg,**karg):
+        return {}
+
 class Topic:
     def __init__(self,topics):
-        self.topic={"general":'*'}
+        self.topic={"general":''}
         self.topics = topics
     
     def __setitem__(self,key,value):
-        self.topic[key]=value.strip()
+        value = value.strip()
+        if value[0]==".":
+            index=1
+            current_topic = self.topic[key].split(".")
+            while value[index]==".":
+                index+=1
+                current_topic.pop()
+            current_topic.append(value[index:])
+            value = ".".join(current_topic)
+        self.topic[key]=value
         
     def __getitem__(self,key):
         topic = self.topic[key]
         if topic in self.topics():
             return topic
-        return '*'
+        return ''
 
 class Chat(object):
-    def __init__(self, pairs, reflections={}, call=multiFunctionCall(), api={}, normalizer=defaultNormal):
+    def __init__(self, pairs=(), reflections=reflections, call=multiFunctionCall(), api={}, normalizer=defaultNormal,default_template=path.join(path.dirname(path.abspath(__file__)),"default.template")):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -77,18 +97,17 @@ class Chat(object):
         :rtype: None
         """
         self.__init__handler()
-        defaultpairs = self.__processTemplateFile(path.join(path.dirname(path.abspath(__file__)),
-                                                            "default.template"))
+        defaultpairs = self.__processTemplateFile(default_template)
         try:
             if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
         except NameError as e:
             if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
-        self._pairs = {'*':[]} 
+        self._pairs = {'':{"pairs":[],"defaults":[]}} 
         if type(pairs)==dict:
-            if not '*' in pairs:
-                raise KeyError("Topic '*' missing")   
+            if not '' in pairs:
+                raise KeyError("Default topic missing")   
         else:
-            pairs = {'*':pairs}
+            pairs = {'':{"pairs":pairs,"defaults":[]}}
         self._normalizer = dict(normalizer)
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
@@ -149,60 +168,61 @@ class Chat(object):
 
     def __errorMessage(self,expected,found):
         return "Expected '%s' tag found '%s'" % (expected,found)
-    
-    def __blockTags(self,text,pos):
-        i=0
-        if pos[i][2]!="block":
-                raise SyntaxError(self.__errorMessage("block",pos[i][2]))
-        i+=1
+
+    def __responseTags(self,text,pos,index):
+        next_index=index+1
+        if pos[next_index][2]!="endresponse":
+            raise SyntaxError(self.__errorMessage("endresponse",pos[next_index][2]))
+        return text[pos[index][1]:pos[next_index][0]].strip(" \t\n")
+              
+    def __blockTags(self,text,pos,length,index):
         withinblock = {"learn":{},"response":[],"client":[],"prev":[]}
-        while pos[i][2]!="endblock":
-            if pos[i][2]=="learn":
-                i+=1
-                while pos[i][2]!="endlearn":
-                    p,name,pairs = self.__GroupTags(text,pos[i:])
-                    i+=p
-                    if name in withinblock["learn"]:
-                        withinblock["learn"][name].extend(pairs)
-                    else:
-                        withinblock["learn"][name]=pairs
-            elif pos[i][2]=="response":
-                i+=1
-                if pos[i][2]!="endresponse":
-                    raise SyntaxError(self.__errorMessage("endresponse",pos[i][2]))
-                withinblock["response"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
-            elif pos[i][2]=="client":
-                i+=1
-                if pos[i][2]!="endclient":
-                    raise SyntaxError(self.__errorMessage("endclient",pos[i][2]))
-                withinblock["client"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
-            elif pos[i][2]=="prev":
-                i+=1
-                if pos[i][2]!="endprev":
-                    raise SyntaxError(self.__errorMessage("endprev",pos[i][2]))
-                withinblock["prev"].append(text[pos[i-1][1]:pos[i][0]].strip(" \t\n"))
+        while pos[index][2]!="endblock":
+            if pos[index][2]=="learn":
+                withinblock["learn"]={}
+                index = self.__GroupTags(text,pos,withinblock["learn"],(lambda i:pos[i][2]!="endlearn"),length,index+1)
+            elif pos[index][2]=="response":
+                withinblock["response"].append(self.__responseTags(text,pos,index))
+                index+=1
+            elif pos[index][2]=="client":
+                index+=1
+                if pos[index][2]!="endclient":
+                    raise SyntaxError(self.__errorMessage("endclient",pos[index][2]))
+                withinblock["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
+            elif pos[index][2]=="prev":
+                index+=1
+                if pos[index][2]!="endprev":
+                    raise SyntaxError(self.__errorMessage("endprev",pos[index][2]))
+                withinblock["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             else:
-                raise NameError("Invalid Tag '%s'" %  pos[i][2])
-            i+=1
-        return i+1,(withinblock["client"][0],
+                raise NameError("Invalid Tag '%s'" %  pos[index][2])
+            index+=1
+        return index+1,(withinblock["client"][0],
                     withinblock["prev"][0] if withinblock["prev"] else None,
                     withinblock["response"],
                     withinblock["learn"] )
     
-    def __GroupTags(self,text,pos):
-        i=0
-        num = len(pos)
+    def __GroupTags(self,text,pos,groups,condition,length,index=0,name=""):
         pairs=[]
-        if pos[i][2]!="group":
-            raise SyntaxError(self.__errorMessage('group',pos[i][2]))
-        name = pos[i][3].strip() 
-        if not name:name = '*'
-        i+=1
-        while pos[i][2]!="endgroup":
-            p,within = self.__blockTags(text,pos[i:])
-            pairs.append(within)
-            i+=p
-        return i+1,name,pairs
+        defaults=[]
+        while condition(index):
+            if pos[index][2]=="block":
+                p,within = self.__blockTags(text,pos,length,index+1)
+                pairs.append(within)
+                index=p
+            elif pos[index][2]=="response":
+                defaults.append(self.__responseTags(text,pos,index))
+                index+=2
+            elif pos[index][2]=="group":
+                index = self.__GroupTags(text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=name+"."+pos[index][3].strip())
+            else:
+                raise SyntaxError(self.__errorMessage('group, block, or response',pos[index][2]))
+        if name in groups:
+            groups[name]["pairs"].extend(pairs)
+            groups[name]["defaults"].extend(defaults)
+        else:
+            groups[name]={"pairs":pairs,"defaults":defaults}
+        return index+1
         
     def __processTemplateFile(self,fileName):
         with open(fileName) as template:
@@ -212,50 +232,40 @@ class Chat(object):
                     r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]*|%(?=[^}]))%}',
                     text)
               ]
+        length = len(pos)
         groups = {}
-        while pos:
-            i,name,pairs = self.__GroupTags(text,pos)
-            if name in groups:
-                groups[name].extend(pairs)
-            else:
-                groups[name]=pairs
-            pos = pos[i:]
+        self.__GroupTags(text,pos,groups,(lambda i:i<length),length)
         return groups
-        
+    
+    def __build_pattern(self,pattern):
+      if pattern!=None:return re.compile(self.__normalize(pattern), re.IGNORECASE)
+    
     def __processLearn(self,pairs):
         for topic in pairs:
-            if topic not in self._pairs:
-                self._pairs[topic]=[] 
-            for p in pairs[topic][::-1]:
-                l={}
-                y = None
-                if len(p)<2:
-                    raise ValueError("Response not specified")
-                elif len(p)==2:
-                    if type(p[1]) not in (tuple,list):
-                        raise ValueError("Response not specified")
-                    x,z = p
-                elif len(p)==3:
-                    if type(p[1]) not in (tuple,list):
-                       x,y,z = p
-                    else:
-                        x,z,l = p
-                else:
-                    x,y,z,l = p[:4]
-                if type(l) != dict:
+            if topic not in self._pairs:self._pairs[topic]={"pairs":[],"defaults":[]}
+            self._pairs[topic]["defaults"].extend([(i,self._condition(i)) 
+                                                    for i in pairs[topic].get("defaults",[])])
+            for pair in pairs[topic]["pairs"][::-1]:
+                learn, previous = {}, None
+                length = len(pair)
+                if length>3:client,previous,responses,learn = pair[:4]
+                elif length==3:
+                    if type(pair[1]) in (tuple,list):client,responses,learn = pair
+                    else:client,previous,responses = pair
+                elif length==2 and type(pair[1]) in (tuple,list):client,responses = pair
+                else:raise ValueError("Response not specified")
+                if type(learn) != dict:
                     raise TypeError("Invalid Type for learn expected dict got '%s'" % type(l).__name__)
-                z=tuple((i,self._condition(i)) for i in z)
-                if y:
-                    self._pairs[topic].insert(0,(re.compile(self.__normalize(x), re.IGNORECASE),re.compile(self.__normalize(y), re.IGNORECASE),z,l))
-                else:
-                    self._pairs[topic].insert(0,(re.compile(x, re.IGNORECASE),y,z,l))
-        
+                self._pairs[topic]["pairs"].insert(0,(self.__build_pattern(client),
+                                                      self.__build_pattern(previous),
+                                                      tuple((i,self._condition(i)) for i in responses),
+                                                      learn))
     
     def _startNewSession(self,sessionID):
         self._memory[sessionID]={}
         self.conversation[sessionID]=[]
         self.attr[sessionID]={"match":None,"pmatch":None,"_quote":False,"substitute":True}
-        self.topic[sessionID] = '*'
+        self.topic[sessionID] = ''
 
     def _restructure(self,group,index=None):
         if index==None:
@@ -410,9 +420,7 @@ class Chat(object):
         :param str: The string to be mapped
         :rtype: str
         """
-        try:
-            if not self.attr["substitute"]:return str
-        except:pass
+        if not self.attr.get("substitute",True):return str
         return self._regex.sub(lambda mo:
                 self._reflections[mo.string[mo.start():mo.end()]],
                     str.lower())
@@ -445,6 +453,8 @@ class Chat(object):
         matchedIndex = None
         _quote = self.attr[sessionID]["_quote"]
         self.attr[sessionID]["_quote"] = False
+        substitute = self.attr.get("substitute",True)
+        self.attr["substitute"] = False
         while check:
             con = self._checkAndEvaluateCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
             i+=1
@@ -464,6 +474,7 @@ class Chat(object):
             elif condition[i]["action"] == "endif":
                 check = False
         self.attr[sessionID]["_quote"] = _quote
+        self.attr["substitute"] = substitute
         return ((self._checkAndEvaluateCondition(
                                 response,
                                 condition[matchedIndex]["within"],
@@ -482,7 +493,7 @@ class Chat(object):
                                 )
     
     def __chat_handler(self,i,condition,response,sessionID):
-        substitute = "substitute" not in self.attr or self.attr["substitute"]
+        substitute = self.attr.get("substitute",True)
         self.attr["substitute"] = False
         response = self.respond(self.__handler(condition[i],response,"chat",sessionID),sessionID =sessionID)
         self.attr["substitute"] = substitute
@@ -625,19 +636,23 @@ class Chat(object):
             start = m.start(0)
             end = m.end(0)     
             num = int(prevResponse[start+startPadding:end])
-            finalResponse += prevResponse[prev:start] + self._quote(self._substitute(match.group(num)),sessionID)
+            finalResponse += prevResponse[prev:start]
+            try:finalResponse += self._quote(self._substitute(match.group(num)),sessionID)
+            except IndexError as e:pass
             prev = end
         namedGroup = match.groupdict()
         if namedGroup:
             prevResponse = finalResponse + prevResponse[prev:]
             finalResponse = ""
             prev = 0
-            for m in re.finditer(r'%'+extraSymbol+'('+'|'.join(namedGroup.keys())+')([^a-zA-Z_0-9]|$)', prevResponse):
+            for m in re.finditer(r'%'+extraSymbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prevResponse):
                 start = m.start(1)
                 end = m.end(1)
                 finalResponse += prevResponse[prev:start]
-                value = namedGroup[prevResponse[start+startPadding:end]]
-                if value:finalResponse += self._quote(self._substitute(value),sessionID)
+                try:
+                    value = namedGroup[prevResponse[start+startPadding:end]]
+                    if value:finalResponse += self._quote(self._substitute(value),sessionID)
+                except KeyError as e:pass
                 prev = end
         return finalResponse + prevResponse[prev:]
     
@@ -674,19 +689,9 @@ class Chat(object):
         self.attr[sessionID]["pmatch"]=parentMatch
         response,condition =  response
         return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvaluateCondition(response,condition,sessionID = sessionID ))
-        
-    def respond(self, text, sessionID = "general"):
-        """
-        Generate a response to the user input.
 
-        :type text: str
-        :param text: The string to be mapped
-        :rtype: str
-        """
-        # check each pattern
-        text =  self.__normalize(text)
-        previousText = self.__normalize(self.conversation[sessionID][-2])
-        for (pattern, parent, response,learn) in self._pairs[self.topic[sessionID]]:
+    def __response_on_topic(self, text, previousText, current_topic, sessionID = "general"):
+      for (pattern, parent, response,learn) in self._pairs[current_topic]["pairs"]:# check each pattern
             match = pattern.match(text)
             parentMatch = parent.match(previousText) if parent!=None else True
             # did the pattern match?
@@ -704,7 +709,35 @@ class Chat(object):
                         for topic in learn}
                     self.__processLearn(learn)
                 return resp
-                
+      raise ValueError("No match found")
+      
+    def respond(self, text, sessionID = "general"):
+        """
+        Generate a response to the user input.
+
+        :type text: str
+        :param text: The string to be mapped
+        :rtype: str
+        """
+        text =  self.__normalize(text)
+        previousText = self.__normalize(self.conversation[sessionID][-2])
+        current_topic = self.topic[sessionID]
+        current_topic_order = current_topic.split(".")
+        topic_hierarchy=[]
+        while current_topic_order:
+          try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
+          except ValueError as e:pass
+          current_topic_order.pop()
+          current_topic = ".".join(current_topic_order)
+          topic_hierarchy.append(current_topic)
+        for topic in topic_hierarchy:
+          if self._pairs[topic]["defaults"]:
+            resp = self._wildcards(random.choice(self._pairs[topic]["defaults"]),
+                                   dummyMatch(match), None, sessionID = sessionID)
+            if resp[-2:] == '?.': resp = resp[:-2] + '.'
+            if resp[-2:] == '??': resp = resp[:-2] + '?'
+            return resp
+    
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
             (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
@@ -751,5 +784,5 @@ class Chat(object):
 
 def demo():
     firstQuestion="Hi, how are you?"
-    Chat(()).converse(firstQuestion)
+    Chat().converse(firstQuestion)
 
