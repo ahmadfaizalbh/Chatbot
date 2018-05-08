@@ -732,11 +732,12 @@ class Chat(object):
           topic_hierarchy.append(current_topic)
         for topic in topic_hierarchy:
           if self._pairs[topic]["defaults"]:
-            resp = self._wildcards(random.choice(self._pairs[topic]["defaults"]),
-                                   dummyMatch(match), None, sessionID = sessionID)
+            response_text = random.choice(self._pairs[topic]["defaults"])
+            resp = self._wildcards(response_text,dummyMatch(response_text), None, sessionID = sessionID)
             if resp[-2:] == '?.': resp = resp[:-2] + '.'
             if resp[-2:] == '??': resp = resp[:-2] + '?'
             return resp
+        return "Sorry I couldn't find anything relevant"
     
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
@@ -773,7 +774,7 @@ class Chat(object):
         input_sentence = ""
         while input_sentence != quit:
             input_sentence = quit
-            try: input_sentence = input_reader(">")
+            try: input_sentence = input_reader("> ")
             except EOFError:print (input_sentence)
             if input_sentence:
                 self.conversation[sessionID].append(input_sentence)
