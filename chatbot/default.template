@@ -54,7 +54,7 @@
 {% block %}
     {% client %}(I (am|feel) )?(feeling )?(absolutely )?(.*){% endclient %}
     {% prev %}.*how are you{% endprev %}
-    {% response %}{% if {%low %5 %} == fine | {%low %5 %} == good | {%low %5 %} == happy %}  Nice to know that you are %5 {% else %} why you feel %5 {% endif %}{% endresponse %}
+    {% response %}{% if {%low %5 %} == fine | {%low %5 %} == good | {%low %5 %} == happy %}  Nice to know that you are %5. What else? {% else %} why you feel %5 {% endif %}{% endresponse %}
 {% endblock %}
 
 {% block %}
