@@ -64,7 +64,7 @@ class Topic:
     
     def __setitem__(self,key,value):
         value = value.strip()
-        if value[0]==".":
+        if value and value[0]==".":
             index=1
             current_topic = self.topic[key].split(".")
             while value[index]==".":
@@ -214,7 +214,8 @@ class Chat(object):
                 defaults.append(self.__responseTags(text,pos,index))
                 index+=2
             elif pos[index][2]=="group":
-                index = self.__GroupTags(text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=name+"."+pos[index][3].strip())
+                child_name=(name+"."+pos[index][3].strip()) if name else pos[index][3].strip()
+                index = self.__GroupTags(text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=child_name)
             else:
                 raise SyntaxError(self.__errorMessage('group, block, or response',pos[index][2]))
         if name in groups:
@@ -261,11 +262,11 @@ class Chat(object):
                                                       tuple((i,self._condition(i)) for i in responses),
                                                       learn))
     
-    def _startNewSession(self,sessionID):
+    def _startNewSession(self,sessionID,topic=''):
         self._memory[sessionID]={}
         self.conversation[sessionID]=[]
         self.attr[sessionID]={"match":None,"pmatch":None,"_quote":False,"substitute":True}
-        self.topic[sessionID] = ''
+        self.topic[sessionID] = topic
 
     def _restructure(self,group,index=None):
         if index==None:
@@ -727,13 +728,15 @@ class Chat(object):
         while current_topic_order:
           try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
           except ValueError as e:pass
+          topic_hierarchy.append(current_topic)
           current_topic_order.pop()
           current_topic = ".".join(current_topic_order)
-          topic_hierarchy.append(current_topic)
+        try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
+        except ValueError as e:topic_hierarchy.append("")
         for topic in topic_hierarchy:
           if self._pairs[topic]["defaults"]:
             response_text = random.choice(self._pairs[topic]["defaults"])
-            resp = self._wildcards(response_text,dummyMatch(response_text), None, sessionID = sessionID)
+            resp = self._wildcards(response_text,dummyMatch(text), None, sessionID = sessionID)
             if resp[-2:] == '?.': resp = resp[:-2] + '.'
             if resp[-2:] == '??': resp = resp[:-2] + '?'
             return resp
@@ -742,27 +745,43 @@ class Chat(object):
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
             (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
+      
+    def __get_topic_recursion(self,topics):
+        result={}
+        for topic in topics:
+          topic_depth=result
+          for sub_topic in topic.split("."):
+            topic_depth=topic_depth.setdefault(sub_topic,{})
+        try:
+          del result['']
+          result={'':result}
+        except:pass
+        return result
   
     def save_template(self,filename):
         with open(filename,"w") as template:
-            self.__genrate_and_wrie_template(template,self._pairs)
+          for topic_name,sub_topic in self.__get_topic_recursion(self._pairs).items():
+            self.__genrate_and_write_template(template,self._pairs,topic_name,sub_topic)
 
-    def __genrate_and_wrie_template(self,template,pairs):
-        for topic in self._pairs:
-            template.write("{% group "+topic+" %}")
-            for (pattern, parent, response,learn) in pairs[topic]:
-                template.write("{% block %}")
-                template.write("{% client %}"+pattern.pattern+"{% endclient %}")
-                if parent!=None:
-                    template.write("{% prev %}"+parent.pattern+"{% endprev %}")
-                for res in response:
-                    template.write("{% response %}"+res[0]+"{% response %}")
-                if learn:
-                    template.write("{% learn %}")
-                    self.__genrate_and_wrie_template(template,learn)
-                    template.write("{% endlearn %}")
-                template.write("{% endblock %}")
-            template.write("{% endgroup %}")
+    def __genrate_and_write_template(self,template,pairs,topic,sub_topics,base_path=None):
+        full_path=(base_path+"."+topic) if base else topic
+        if topic:template.write("{% group "+topic+" %}")
+        for topic_name,sub_topic in sub_topics.items():self.__genrate_and_write_template(template,pairs,topic_name,sub_topic,full_path)
+        for (pattern, parent, response,learn) in pairs[full_path]["pairs"]:
+            template.write("{% block %}")
+            template.write("{% client %}"+pattern.pattern+"{% endclient %}")
+            if parent!=None:
+                template.write("{% prev %}"+parent.pattern+"{% endprev %}")
+            for res in response:
+                template.write("{% response %}"+res[0]+"{% response %}")
+            if learn:
+                template.write("{% learn %}")
+                for topic_name,sub_topic in self.__get_topic_recursion(learn).items():self.__genrate_and_write_template(template,learn,topic_name,sub_topic)
+                template.write("{% endlearn %}")
+            template.write("{% endblock %}")
+        for res in pairs[topic]["defaults"]:
+            template.write("{% response %}"+res[0]+"{% response %}")
+        if topic:template.write("{% endgroup %}")
                         
     # Hold a conversation with a chatbot                                       
     def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
