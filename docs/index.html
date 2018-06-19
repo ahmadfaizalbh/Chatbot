@@ -1,0 +1,194 @@
+<div id="readme" class="readme blob instapaper_body">
+    <article class="markdown-body entry-content" itemprop="text"><h1><a id="user-content-chatbot" class="anchor" aria-hidden="true" href="#chatbot"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Chatbot</h1>
+<p>Python chatbot AI that helps in creating a python based chatbot with
+minimal coding. This provides both bots AI and chat handler and also
+allows easy integration of REST API's and python function calls which
+makes it unique and more powerful in functionality. This AI provides
+numerous features like learn, memory, conditional switch, topic-based
+conversation handling, etc.</p>
+<p><a target="_blank" href="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo.gif"><img src="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo.gif" alt="Demo" style="max-width:100%;"></a>
+<a target="_blank" href="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/clothing.gif"><img src="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/clothing.gif" alt="Clothing assistance" style="max-width:100%;"></a>
+<a target="_blank" href="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/reminder.gif"><img src="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/reminder.gif" alt="Remainder" style="max-width:100%;"></a></p>
+<h2><a id="user-content-installation" class="anchor" aria-hidden="true" href="#installation"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Installation</h2>
+<p>Install from PyPI:</p>
+<div class="highlight highlight-source-shell"><pre>pip install chatbotAI</pre></div>
+<p>install from github:</p>
+<div class="highlight highlight-source-shell"><pre>git clone https://github.com/ahmadfaizalbh/Chatbot.git
+<span class="pl-c1">cd</span> Chatbot
+python setup.py install</pre></div>
+<h2><a id="user-content-demo" class="anchor" aria-hidden="true" href="#demo"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Demo</h2>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> <span class="pl-k">from</span> chatbot <span class="pl-k">import</span> demo
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> demo()
+Hi, how are you<span class="pl-ii">?</span>
+<span class="pl-k">&gt;</span> i<span class="pl-s"><span class="pl-pds">'</span>m fine<span class="pl-ii"></span></span>
+Nice to know that you are fine  
+<span class="pl-k">&gt;</span> <span class="pl-c1">quit</span>
+Thank you <span class="pl-k">for</span> talking <span class="pl-k">with</span> me.
+<span class="pl-k">&gt;&gt;</span><span class="pl-k">&gt;</span> </pre></div>
+<h2><a id="user-content-sample-code-with-wikipedia-search-api-integration" class="anchor" aria-hidden="true" href="#sample-code-with-wikipedia-search-api-integration"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Sample Code (with wikipedia search API integration)</h2>
+<div class="highlight highlight-source-python"><pre><span class="pl-k">from</span> chatbot <span class="pl-k">import</span> Chat,reflections,multiFunctionCall
+<span class="pl-k">import</span> wikipedia
+
+<span class="pl-k">def</span> <span class="pl-en">whoIs</span>(<span class="pl-smi">query</span>,<span class="pl-smi">sessionID</span><span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>general<span class="pl-pds">"</span></span>):
+    <span class="pl-k">try</span>:
+        <span class="pl-k">return</span> wikipedia.summary(query)
+    <span class="pl-k">except</span>:
+        <span class="pl-k">for</span> newquery <span class="pl-k">in</span> wikipedia.search(query):
+            <span class="pl-k">try</span>:
+                <span class="pl-k">return</span> wikipedia.summary(newquery)
+            <span class="pl-k">except</span>:
+                <span class="pl-k">pass</span>
+    <span class="pl-k">return</span> <span class="pl-s"><span class="pl-pds">"</span>I don't know about <span class="pl-pds">"</span></span><span class="pl-k">+</span>query
+        
+call <span class="pl-k">=</span> multiFunctionCall({<span class="pl-s"><span class="pl-pds">"</span>whoIs<span class="pl-pds">"</span></span>:whoIs})
+firstQuestion<span class="pl-k">=</span><span class="pl-s"><span class="pl-pds">"</span>Hi, how are you?<span class="pl-pds">"</span></span>
+Chat(<span class="pl-s"><span class="pl-pds">"</span>examples/Example.template<span class="pl-pds">"</span></span>, reflections,<span class="pl-v">call</span><span class="pl-k">=</span>call).converse(firstQuestion)</pre></div>
+<p>For Detail on how to build Facebook messenger bot checkout  <a href="https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb">Facebook Integration.ipynb</a></p>
+<p>For Jupyter notebook Chatbot checkout <a href="https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/How%20to%20build%20a%20bot.ipynb">Infobot built using NLTK-Chatbot</a></p>
+<h4><a id="user-content-sample-apps" class="anchor" aria-hidden="true" href="#sample-apps"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Sample Apps</h4>
+<ol>
+<li>A sample facebook messenger bot built using <a href="https://github.com/geeknam/messengerbot/pulls">messengerbot</a>, <a href="https://github.com/django/django">Django</a> and <a href="#chatbot">NLTK-Chatbot</a> is available here <a href="https://github.com/ahmadfaizalbh/FacebookMessengerBot/">Facebook messenger bot</a></li>
+<li>A sample microsoft bot built using <a href="https://docs.botframework.com/en-us/restapi/connector/#navtitle" rel="nofollow">Microsoft Bot Connector Rest API - v3.0</a>, <a href="https://github.com/django/django">Django</a> and <a href="#chatbot">NLTK-Chatbot</a> is available here <a href="https://github.com/ahmadfaizalbh/Microsoft-chatbot/">Micosoft Chatbot</a></li>
+</ol>
+<h2><a id="user-content-list-of-feature-supported-in-bot-template" class="anchor" aria-hidden="true" href="#list-of-feature-supported-in-bot-template"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>List of feature supported in bot template</h2>
+<ol>
+<li><a href="#memory">Memory</a></li>
+<li><a href="#get-matched-group">Get matched group</a></li>
+<li><a href="#recursion">Recursion</a></li>
+<li><a href="#condition">Condition</a></li>
+<li><a href="#change-topic">Change Topic</a></li>
+<li><a href="#interact-with-python-function">Interact with python function</a></li>
+<li><a href="#rest-api-integration">REST API integration</a></li>
+<li><a href="#topic-based-group">Topic based group</a></li>
+<li><a href="#learn">Learn</a></li>
+<li><a href="#to-upper-case">To upper case</a></li>
+<li><a href="#to-lower-case">To lower case</a></li>
+<li><a href="#capitalize">Capitalize</a></li>
+<li><a href="#previous">Previous</a></li>
+</ol>
+<hr>
+<h2><a id="user-content-memory" class="anchor" aria-hidden="true" href="#memory"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Memory</h2>
+<h4><a id="user-content-set-memory" class="anchor" aria-hidden="true" href="#set-memory"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Set Memory</h4>
+<pre><code>{ variable : value }
+</code></pre>
+<p>In think mode</p>
+<pre><code>{! variable : value }
+</code></pre>
+<h4><a id="user-content-get-memory" class="anchor" aria-hidden="true" href="#get-memory"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get Memory</h4>
+<pre><code>{ variable }
+</code></pre>
+<h2><a id="user-content-get-matched-group" class="anchor" aria-hidden="true" href="#get-matched-group"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get matched group</h2>
+<h4><a id="user-content-get-nth-matched-group-of-client-pattern" class="anchor" aria-hidden="true" href="#get-nth-matched-group-of-client-pattern"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get N<sup>th</sup> matched group of client pattern</h4>
+<pre><code>%N
+</code></pre>
+<p>Example to get first matched</p>
+<pre><code>%1
+</code></pre>
+<h4><a id="user-content-get-nth-matched-group-of-bots-pattern" class="anchor" aria-hidden="true" href="#get-nth-matched-group-of-bots-pattern"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Get N<sup>th</sup> matched group of bots pattern</h4>
+<pre><code>%!N
+</code></pre>
+<p>Example to get first matched</p>
+<pre><code>%!1
+</code></pre>
+<h2><a id="user-content-recursion" class="anchor" aria-hidden="true" href="#recursion"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Recursion</h2>
+<p>Get response as if client said this new statement</p>
+<pre><code>{% chat statement %}
+</code></pre>
+<p>It will do a pattern match for statement</p>
+<h2><a id="user-content-condition" class="anchor" aria-hidden="true" href="#condition"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Condition</h2>
+<pre><code>{% if condition %} do this first {% elif condition %} do this next {% else %} do otherwise {% endif %}
+</code></pre>
+<h2><a id="user-content-change-topic" class="anchor" aria-hidden="true" href="#change-topic"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Change Topic</h2>
+<pre><code>{% topic TopicName %}
+</code></pre>
+<h2><a id="user-content-interact-with-python-function" class="anchor" aria-hidden="true" href="#interact-with-python-function"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Interact with python function</h2>
+<pre><code>{% call functionName: value %}
+</code></pre>
+<h2><a id="user-content-rest-api-integration" class="anchor" aria-hidden="true" href="#rest-api-integration"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>REST API integration</h2>
+<h3><a id="user-content-in-apijson-file" class="anchor" aria-hidden="true" href="#in-apijson-file"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>In API.json file</h3>
+<pre><code>{
+   "APIName":{
+       "auth" : {
+           "url":"https://your_rest_api_url/login.json",
+           "method":"POST",
+           "data":{
+               "user":"Your_Username",
+               "password":"Your_Password"
+           }
+       },
+       "MethodName" : {
+           "url":"https://your_rest_api_url/GET_method_Example.json",
+           "method":"GET",
+           "params":{
+               "key1":"value1",
+               "key2":"value2",
+               ...
+           },
+           "value_getter":[order in which data has to be picked from json response]
+       },
+       "MethodName1" : {
+           "url":"https://your_rest_api_url/GET_method_Example.json",
+           "method":"POST",
+           "data":{
+               "key1":"value1",
+               "key2":"value2",
+               ...
+           },
+           "value_getter":[order in which data has to be picked from json response]
+       },
+       "MethodName2" : {
+           ...
+       },
+       ...
+   },
+   "APIName2":{
+       ...
+   },
+   ...
+}
+</code></pre>
+<p><em>If authentication is required only then <code>auth</code> method is needed.The <code>data</code> and <code>params</code> defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.<code>value_getter</code> consistes of list of keys in order using which info from json will be collected.</em></p>
+<h3><a id="user-content-in-template-file" class="anchor" aria-hidden="true" href="#in-template-file"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>In Template file</h3>
+<pre><code>[ APIName:MethodName,Key1:value1 (,Key*:value*) ]
+</code></pre>
+<p>you can have any number of key value pair and all key value pair will override data or params depending on <code>method</code>, if <code>method</code> is <code>POST</code> then it overrides data and if method is <code>GET</code> then it overrides <code>params</code>.</p>
+<h2><a id="user-content-topic-based-group" class="anchor" aria-hidden="true" href="#topic-based-group"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Topic based group</h2>
+<pre><code>{% group topicName %}
+  {% block %}
+      {% client %}client says {% endclient %}
+      {% response %}response text{% endresponse %}
+  {% endblock %}
+  ...
+{% endgroup %}
+</code></pre>
+<h2><a id="user-content-learn" class="anchor" aria-hidden="true" href="#learn"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Learn</h2>
+<pre><code>{% learn %}
+  {% group topicName %}
+    {% block %}
+        {% client %}client says {% endclient %}
+        {% response %}response text{% endresponse %}
+    {% endblock %}
+    ...
+  {% endgroup %}
+  ...
+{% endlearn %}
+</code></pre>
+<h2><a id="user-content-to-upper-case" class="anchor" aria-hidden="true" href="#to-upper-case"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>To upper case</h2>
+<pre><code>{% up string %}
+</code></pre>
+<h2><a id="user-content-to-lower-case" class="anchor" aria-hidden="true" href="#to-lower-case"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>To lower case</h2>
+<pre><code>{% low string %}
+</code></pre>
+<h2><a id="user-content-capitalize" class="anchor" aria-hidden="true" href="#capitalize"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Capitalize</h2>
+<pre><code>{% cap string %}
+</code></pre>
+<h2><a id="user-content-previous" class="anchor" aria-hidden="true" href="#previous"><svg class="octicon octicon-link" viewBox="0 0 16 16" version="1.1" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Previous</h2>
+<pre><code>{% block %}
+    {% client %}client's statement pattern{% endclient %}
+    {% prev %}previous bot's statement pattern{% endprev %}
+    {% response %}response string{% endresponse %}
+{% endblock %}
+</code></pre>
+<p><a target="_blank" href="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/ChatBot%20AI.png"><img src="https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/ChatBot%20AI.png" alt="Chatbot AI flow Diagram" style="max-width:100%;"></a></p>
+</article>
+  </div>
