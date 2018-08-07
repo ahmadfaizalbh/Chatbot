@@ -239,8 +239,13 @@ class Chat(object):
         return groups
     
     def __build_pattern(self,pattern):
-      if pattern!=None:return re.compile(self.__normalize(pattern), re.IGNORECASE)
-    
+        if pattern!=None:
+          try:return re.compile(self.__normalize(pattern), re.IGNORECASE)
+          except Exception as e:
+            e.args=(str(e)+ " in pattern "+pattern, )
+            raise e
+      
+      
     def __processLearn(self,pairs):
         for topic in pairs:
             if topic not in self._pairs:self._pairs[topic]={"pairs":[],"defaults":[]}
@@ -692,25 +697,31 @@ class Chat(object):
         return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvaluateCondition(response,condition,sessionID = sessionID ))
 
     def __response_on_topic(self, text, previousText, current_topic, sessionID = "general"):
-      for (pattern, parent, response,learn) in self._pairs[current_topic]["pairs"]:# check each pattern
-            match = pattern.match(text)
-            parentMatch = parent.match(previousText) if parent!=None else True
-            # did the pattern match?
-            if parentMatch and match:
-                parentMatch = None if parentMatch==True else parentMatch
-                resp = random.choice(response)    # pick a random response
-                resp = self._wildcards(resp, match, parentMatch,sessionID = sessionID) # process wildcards
-                # fix munged punctuation at the end
-                if resp[-2:] == '?.': resp = resp[:-2] + '.'
-                if resp[-2:] == '??': resp = resp[:-2] + '?'
-                if learn:
-                    learn = {
-                        self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
-                        tuple(self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID)  for pair in learn[topic]) \
-                        for topic in learn}
-                    self.__processLearn(learn)
-                return resp
-      raise ValueError("No match found")
+        for (pattern, parent, response,learn) in self._pairs[current_topic]["pairs"]:# check each pattern
+          match = pattern.match(text)
+          parentMatch = parent.match(previousText) if parent!=None else True
+          # did the pattern match?
+          if parentMatch and match:
+            parentMatch = None if parentMatch==True else parentMatch
+            resp = random.choice(response)    # pick a random response
+            resp = self._wildcards(resp, match, parentMatch,sessionID = sessionID) # process wildcards
+            # fix munged punctuation at the end
+            if resp[-2:] == '?.': resp = resp[:-2] + '.'
+            if resp[-2:] == '??': resp = resp[:-2] + '?'
+            if learn:
+              learn = {
+                self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
+                tuple(self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID)  for pair in learn[topic]) \
+                for topic in learn}
+              self.__processLearn(learn)
+            return resp
+        if self._pairs[current_topic]["defaults"]:
+          response_text = random.choice(self._pairs[current_topic]["defaults"])
+          resp = self._wildcards(response_text,dummyMatch(text), None, sessionID = sessionID)
+          if resp[-2:] == '?.': resp = resp[:-2] + '.'
+          if resp[-2:] == '??': resp = resp[:-2] + '?'
+          return resp
+        raise ValueError("No match found")
       
     def respond(self, text, sessionID = "general"):
         """
@@ -724,23 +735,13 @@ class Chat(object):
         previousText = self.__normalize(self.conversation[sessionID][-2])
         current_topic = self.topic[sessionID]
         current_topic_order = current_topic.split(".")
-        topic_hierarchy=[]
         while current_topic_order:
           try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
           except ValueError as e:pass
-          topic_hierarchy.append(current_topic)
           current_topic_order.pop()
           current_topic = ".".join(current_topic_order)
         try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
-        except ValueError as e:topic_hierarchy.append("")
-        for topic in topic_hierarchy:
-          if self._pairs[topic]["defaults"]:
-            response_text = random.choice(self._pairs[topic]["defaults"])
-            resp = self._wildcards(response_text,dummyMatch(text), None, sessionID = sessionID)
-            if resp[-2:] == '?.': resp = resp[:-2] + '.'
-            if resp[-2:] == '??': resp = resp[:-2] + '?'
-            return resp
-        return "Sorry I couldn't find anything relevant"
+        except ValueError as e:return "Sorry I couldn't find anything relevant"
     
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
         return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \

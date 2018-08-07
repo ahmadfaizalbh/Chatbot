@@ -91,9 +91,10 @@ defaultNormal = {
     "wanna": "want to",
     "gonna": "going to",
     
+    "yha": "yes",
+    "aye": "yes",
     "yep": "yes",
     "yea": "yes",
-    "ok": "yes",
     "affirmative": "yes",
     "roger": "yes",
     "uh-huh": "yes",
@@ -118,7 +119,12 @@ defaultNormal = {
     "nah": "no",
     "negative": "no",
     "veto": "no",
- 
+    "none": "no",
+    
+    "ok": "okay",
+    "o.k": "okay",
+    "okey": "okay",
+    
     "I'm": "I am",
     "I'd": "I would",
     "I'll": "I will",
