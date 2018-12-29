@@ -1,6 +1,7 @@
 import re,random,requests,json
 from os import path
 from .DefaultSubs import *
+from .spellcheck import correction,WORDS
 try:
   from urllib import quote
 except ImportError as e:
@@ -696,33 +697,51 @@ class Chat(object):
         response,condition =  response
         return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvaluateCondition(response,condition,sessionID = sessionID ))
 
-    def __response_on_topic(self, text, previousText, current_topic, sessionID = "general"):
+    def __chose_and_process(self,choices,match,parentMatch,sessionID):
+        resp = random.choice(choices)    # pick a random response
+        resp = self._wildcards(resp, match, parentMatch,sessionID = sessionID) # process wildcards
+        # fix munged punctuation at the end
+        if resp[-2:] == '?.': resp = resp[:-2] + '.'
+        if resp[-2:] == '??': resp = resp[:-2] + '?'
+        return resp
+
+    def __intend_selection(self, text, previousText, current_topic, sessionID):
         for (pattern, parent, response,learn) in self._pairs[current_topic]["pairs"]:# check each pattern
           match = pattern.match(text)
-          parentMatch = parent.match(previousText) if parent!=None else True
-          # did the pattern match?
-          if parentMatch and match:
-            parentMatch = None if parentMatch==True else parentMatch
-            resp = random.choice(response)    # pick a random response
-            resp = self._wildcards(resp, match, parentMatch,sessionID = sessionID) # process wildcards
-            # fix munged punctuation at the end
-            if resp[-2:] == '?.': resp = resp[:-2] + '.'
-            if resp[-2:] == '??': resp = resp[:-2] + '?'
-            if learn:
-              learn = {
-                self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
-                tuple(self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID)  for pair in learn[topic]) \
-                for topic in learn}
-              self.__processLearn(learn)
-            return resp
+          if not match:continue
+          if parent==None:return match,None,response,learn
+          parentMatch = parent.match(previousText)
+          if parentMatch:# did the pattern match?
+            return match,parentMatch,response,learn
+
+    def __response_on_topic(self, text, previousText, text_correction, current_topic, sessionID = "general"):
+        match=self.__intend_selection(text, previousText, current_topic, sessionID)
+        if not match:
+            match=self.__intend_selection(text_correction, previousText, current_topic, sessionID)
+        if match:
+          match,parentMatch,response,learn=match
+          if learn:
+            self.__processLearn({
+                  self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
+                  tuple(self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID)  for pair in learn[topic]) \
+                  for topic in learn})
+          return self.__chose_and_process(response,match,parentMatch,sessionID)
         if self._pairs[current_topic]["defaults"]:
-          response_text = random.choice(self._pairs[current_topic]["defaults"])
-          resp = self._wildcards(response_text,dummyMatch(text), None, sessionID = sessionID)
-          if resp[-2:] == '?.': resp = resp[:-2] + '.'
-          if resp[-2:] == '??': resp = resp[:-2] + '?'
-          return resp
+          return self.__chose_and_process(self._pairs[current_topic]["defaults"],dummyMatch(text), None,sessionID)
         raise ValueError("No match found")
-      
+
+    def __correction(self,text):
+        """
+        spell correction
+        """
+        new_text = []
+        for i in text.split():
+            if len(i)>3:
+                low = i.lower()
+                new_text.append(i if WORDS[i] else correction(i))
+            else:new_text.append(i)
+        return " ".join(new_text)
+
     def respond(self, text, sessionID = "general"):
         """
         Generate a response to the user input.
@@ -733,14 +752,15 @@ class Chat(object):
         """
         text =  self.__normalize(text)
         previousText = self.__normalize(self.conversation[sessionID][-2])
+        text_correction = self.__correction(text)
         current_topic = self.topic[sessionID]
         current_topic_order = current_topic.split(".")
         while current_topic_order:
-          try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
+          try:return self.__response_on_topic(text, previousText, text_correction, current_topic, sessionID)
           except ValueError as e:pass
           current_topic_order.pop()
           current_topic = ".".join(current_topic_order)
-        try:return self.__response_on_topic(text, previousText, current_topic, sessionID)
+        try:return self.__response_on_topic(text, previousText, text_correction, current_topic, sessionID)
         except ValueError as e:return "Sorry I couldn't find anything relevant"
     
     def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
