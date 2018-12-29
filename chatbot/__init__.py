@@ -715,9 +715,8 @@ class Chat(object):
             return match,parentMatch,response,learn
 
     def __response_on_topic(self, text, previousText, text_correction, current_topic, sessionID = "general"):
-        match=self.__intend_selection(text, previousText, current_topic, sessionID)
-        if not match:
-            match=self.__intend_selection(text_correction, previousText, current_topic, sessionID)
+        match=self.__intend_selection(text, previousText, current_topic, sessionID) or \
+              self.__intend_selection(text_correction, previousText, current_topic, sessionID)
         if match:
           match,parentMatch,response,learn=match
           if learn:
