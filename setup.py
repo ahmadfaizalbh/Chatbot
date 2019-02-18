@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name = 'chatbotAI',
-    version='0.2.0.6',
+    version='0.2.0.7',
     author = "Ahmad Faizal B H",
     author_email = "ahmadfaizalbh726@gmail.com",
     url="https://github.com/ahmadfaizalbh/Chatbot",

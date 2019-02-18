@@ -99,16 +99,14 @@ class Chat(object):
         """
         self.__init__handler()
         defaultpairs = self.__processTemplateFile(default_template)
-        try:
-            if type(pairs) in (str,unicode):pairs = self.__processTemplateFile(pairs)
-        except NameError as e:
-            if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
+        if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
+        elif 'unicode' in __builtins__.__dict__ and type(pairs) == __builtins__.__dict__['unicode']:
+          pairs = self.__processTemplateFile(pairs)
         self._pairs = {'':{"pairs":[],"defaults":[]}} 
-        if type(pairs)==dict:
-            if not '' in pairs:
-                raise KeyError("Default topic missing")   
-        else:
-            pairs = {'':{"pairs":pairs,"defaults":[]}}
+        if type(pairs)!=dict:
+          pairs = {'':{"pairs":pairs,"defaults":[]}}
+        elif not '' in pairs:
+          raise KeyError("Default topic missing")
         self._normalizer = dict(normalizer)
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
@@ -182,6 +180,7 @@ class Chat(object):
             if pos[index][2]=="learn":
                 withinblock["learn"]={}
                 index = self.__GroupTags(text,pos,withinblock["learn"],(lambda i:pos[i][2]!="endlearn"),length,index+1)
+                index-=1
             elif pos[index][2]=="response":
                 withinblock["response"].append(self.__responseTags(text,pos,index))
                 index+=1
@@ -722,7 +721,8 @@ class Chat(object):
           if learn:
             self.__processLearn({
                   self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
-                  tuple(self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID)  for pair in learn[topic]) \
+                  {'pairs':[self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID) for pair in learn[topic]['pairs']],
+                   'defaults':[self._wildcards((default,self._condition(default)), match, parentMatch,sessionID = sessionID) for default in learn[topic]['defaults']]  } \
                   for topic in learn})
           return self.__chose_and_process(response,match,parentMatch,sessionID)
         if self._pairs[current_topic]["defaults"]:
