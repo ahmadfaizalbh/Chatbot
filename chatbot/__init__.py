@@ -99,8 +99,7 @@ class Chat(object):
         """
         self.__init__handler()
         defaultpairs = self.__processTemplateFile(default_template)
-        if type(pairs) == str:pairs = self.__processTemplateFile(pairs)
-        elif 'unicode' in __builtins__.__dict__ and type(pairs) == __builtins__.__dict__['unicode']:
+        if type(pairs).__name__ in ('unicode','str'):
           pairs = self.__processTemplateFile(pairs)
         self._pairs = {'':{"pairs":[],"defaults":[]}} 
         if type(pairs)!=dict:
