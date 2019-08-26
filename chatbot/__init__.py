@@ -225,7 +225,7 @@ class Chat(object):
         return index+1
         
     def __processTemplateFile(self,fileName):
-        with open(fileName) as template:
+        with open(fileName, encoding='utf-8') as template:
             text = template.read()
         pos = [(m.start(0),m.end(0),text[m.start(1):m.end(1)],text[m.start(4):m.end(4)]) \
                 for m in  re.finditer( 
