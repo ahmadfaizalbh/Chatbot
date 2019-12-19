@@ -1,88 +1,83 @@
-import re,random,requests,json
+import re
+import random
+import requests
+import json
 from os import path
-from .DefaultSubs import *
-from .spellcheck import correction,WORDS
+from .default_substitutions import reflections, default_normal
+from .spellcheck import correction, WORDS
 try:
-  from urllib import quote
-except ImportError as e:
-  from urllib.parse import quote
-  
-  
-reflections = {
-  "i am"       : "you are",
-  "i was"      : "you were",
-  "i"          : "you",
-  "i'm"        : "you are",
-  "i'd"        : "you would",
-  "i've"       : "you have",
-  "i'll"       : "you will",
-  "my"         : "your",
-  "you are"    : "I am",
-  "you were"   : "I was",
-  "you've"     : "I have",
-  "you'll"     : "I will",
-  "your"       : "my",
-  "yours"      : "mine",
-  "you"        : "me",
-  "me"         : "you"
-}
+    from urllib import quote
+except ImportError:
+    from urllib.parse import quote
 
 
-class multiFunctionCall:
+class MultiFunctionCall:
 
-    def __init__(self,func={}):
+    def __init__(self, func={}):
         self.__func__ = func
-        
-    def defaultfunc(self,string,sessionID ="general"):
+
+    @staticmethod
+    def default_func(string, session_id="general"):
         return string
 
-    def call(self,string,sessionID):
+    def call(self, string, session_id):
         s = string.split(":")
-        if len(s)<=1:
+        if len(s) <= 1:
             return string
         name = s[0].strip()
         s = ":".join(s[1:])
-        func = self.defaultfunc
-        try:func = self.__func__[name]
-        except:s = string
-        return re.sub(r'\\([\[\]{}%:])',r"\1",func(re.sub(r'([\[\]{}%:])',r"\\\1",s),sessionID =sessionID))
+        func = self.default_func
+        try:
+            func = self.__func__[name]
+        except KeyError:
+            s = string
+        new_string = re.sub(r'([\[\]{}%:])', r"\\\1", s)
+        return re.sub(r'\\([\[\]{}%:])', r"\1", func(new_string, session_id=session_id))
 
-class dummyMatch:
-    def __init__(self,string):
+
+class DummyMatch:
+
+    def __init__(self, string):
         self.string = string
 
-    def group(self,index):
-        if index==0:return self.string
+    def group(self, index):
+        if index == 0:
+            return self.string
         raise IndexError("no such group")
 
-    def groupdict(self,*arg,**karg):
+    @staticmethod
+    def groupdict(*arg, **karg):
         return {}
 
+
 class Topic:
-    def __init__(self,topics):
-        self.topic={"general":''}
+
+    def __init__(self, topics):
+        self.topic = {"general": ''}
         self.topics = topics
-    
-    def __setitem__(self,key,value):
+
+    def __setitem__(self, key, value):
         value = value.strip()
-        if value and value[0]==".":
-            index=1
+        if value and value[0] == ".":
+            index = 1
             current_topic = self.topic[key].split(".")
-            while value[index]==".":
-                index+=1
+            while value[index] == ".":
+                index += 1
                 current_topic.pop()
             current_topic.append(value[index:])
             value = ".".join(current_topic)
-        self.topic[key]=value
-        
-    def __getitem__(self,key):
+        self.topic[key] = value
+
+    def __getitem__(self, key):
         topic = self.topic[key]
         if topic in self.topics():
             return topic
         return ''
 
+
 class Chat(object):
-    def __init__(self, pairs=(), reflections=reflections, call=multiFunctionCall(), api={}, normalizer=defaultNormal,default_template=path.join(path.dirname(path.abspath(__file__)),"default.template")):
+    def __init__(self, pairs=(), reflections=reflections, call=MultiFunctionCall(), api={}, normalizer=default_normal,
+                 default_template=path.join(path.dirname(path.abspath(__file__)),  "default.template")):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -98,60 +93,62 @@ class Chat(object):
         :rtype: None
         """
         self.__init__handler()
-        defaultpairs = self.__processTemplateFile(default_template)
-        if type(pairs).__name__ in ('unicode','str'):
-          pairs = self.__processTemplateFile(pairs)
-        self._pairs = {'':{"pairs":[],"defaults":[]}} 
-        if type(pairs)!=dict:
-          pairs = {'':{"pairs":pairs,"defaults":[]}}
-        elif not '' in pairs:
-          raise KeyError("Default topic missing")
+        default_pairs = self.__process_template_file(default_template)
+        if type(pairs).__name__ in ('unicode', 'str'):
+            pairs = self.__process_template_file(pairs)
+        self._pairs = {'': {"pairs": [], "defaults": []}}
+        if type(pairs) != dict:
+            pairs = {'': {"pairs": pairs, "defaults": []}}
+        elif '' not in pairs:
+            raise KeyError("Default topic missing")
         self._normalizer = dict(normalizer)
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
         self._normalizer_regex = self._compile_reflections(normalizer)
-        self.__processLearn(defaultpairs)
-        self.__processLearn(pairs)
+        self.__process_learn(default_pairs)
+        self.__process_learn(pairs)
         self._reflections = reflections
         self._regex = self._compile_reflections(reflections)
-        self._memory = {"general":{}}
-        self.conversation = {"general":[]}
-        self.sessionID = "general"
-        self.attr = {"general":{"match":None,"pmatch":None,"_quote":False,"substitute":True}}
+        self._memory = {"general": {}}
+        self.conversation = {"general": []}
+        self.session_id = "general"
+        self.attr = {"general": {"match": None, "pmatch": None, "_quote": False, "substitute": True}}
         self.call = call
         self.topic = Topic(self._pairs.keys)
-        try:self._api = api if type(api)==dict else json.load(api)
-        except:raise SyntaxError("Invalid value for api")
+        try:
+            self._api = api if type(api) == dict else json.load(api)
+        except Exception:
+            raise SyntaxError("Invalid value for api")
 
     def __init__handler(self):
         """
         initialize handlers and operator functionality
         """
-        self.__action_handlers = {"chat":self.__chat_handler,
-                          "low":self.__low_handler,
-                          "up":self.__up_handler,
-                          "cap":self.__cap_handler,
-                          "call":self.__call_handler,
-                          "topic":self.__topic_handler,
-                          "map":self.__map_handler,
-                          "eval":self.__eval_handler,
+        self.__action_handlers = {
+            "chat": self.__chat_handler,
+            "low": self.__low_handler,
+            "up": self.__up_handler,
+            "cap": self.__cap_handler,
+            "call": self.__call_handler,
+            "topic": self.__topic_handler,
+            "map": self.__map_handler,
+            "eval": self.__eval_handler,
             }
-        self.__confitional_operator = {
-                "!=":lambda a,b:a!=b,
-                ">=":lambda a,b:a>=b,
-                "<=":lambda a,b:a<=b,
-                "==":lambda a,b:a==b,
-                "<":lambda a,b:a<b,
-                ">":lambda a,b:a>b
+        self.__conditional_operator = {
+                "!=": lambda a, b: a != b,
+                ">=": lambda a, b: a >= b,
+                "<=": lambda a, b: a <= b,
+                "==": lambda a, b: a == b,
+                "<": lambda a, b: a < b,
+                ">": lambda a, b: a > b
             }
-        self.__logical_operator ={
-                '&':lambda a,b:a and b,
-                '|':lambda a,b:a or b,
-                '^':lambda a,b:a ^ b
+        self.__logical_operator = {
+                '&': lambda a, b: a and b,
+                '|': lambda a, b: a or b,
+                '^': lambda a, b: a ^ b
             }
-        
 
-    def __normalize(self,text):
+    def __normalize(self, text):
         """
         Substitute words in the string, according to the specified Normal,
         e.g. "I'm" -> "I am"
@@ -160,261 +157,277 @@ class Chat(object):
         :param str: The string to be mapped
         :rtype: str
         """
-        return self._normalizer_regex.sub(lambda mo:
-                self._normalizer[mo.string[mo.start():mo.end()]],
-                    text.lower())
+        return self._normalizer_regex.sub(lambda mo: self._normalizer[mo.string[mo.start():mo.end()]], text.lower())
 
-    def __errorMessage(self,expected,found):
-        return "Expected '%s' tag found '%s'" % (expected,found)
+    @staticmethod
+    def __error_message(expected, found):
+        return "Expected '%s' tag found '%s'" % (expected, found)
 
-    def __responseTags(self,text,pos,index):
-        next_index=index+1
-        if pos[next_index][2]!="endresponse":
-            raise SyntaxError(self.__errorMessage("endresponse",pos[next_index][2]))
+    def __response_tags(self, text, pos, index):
+        next_index = index+1
+        if pos[next_index][2] != "endresponse":
+            raise SyntaxError(self.__errorMessage("endresponse", pos[next_index][2]))
         return text[pos[index][1]:pos[next_index][0]].strip(" \t\n")
-              
-    def __blockTags(self,text,pos,length,index):
-        withinblock = {"learn":{},"response":[],"client":[],"prev":[]}
-        while pos[index][2]!="endblock":
-            if pos[index][2]=="learn":
-                withinblock["learn"]={}
-                index = self.__GroupTags(text,pos,withinblock["learn"],(lambda i:pos[i][2]!="endlearn"),length,index+1)
-                index-=1
-            elif pos[index][2]=="response":
-                withinblock["response"].append(self.__responseTags(text,pos,index))
-                index+=1
-            elif pos[index][2]=="client":
-                index+=1
-                if pos[index][2]!="endclient":
-                    raise SyntaxError(self.__errorMessage("endclient",pos[index][2]))
-                withinblock["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
-            elif pos[index][2]=="prev":
-                index+=1
-                if pos[index][2]!="endprev":
-                    raise SyntaxError(self.__errorMessage("endprev",pos[index][2]))
-                withinblock["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
+
+    def __block_tags(self, text, pos, length, index):
+        within_block = {"learn": {}, "response": [], "client": [], "prev": []}
+        while pos[index][2] != "endblock":
+            if pos[index][2] == "learn":
+                within_block["learn"] = {}
+                index = self.__group_tags(text, pos, within_block["learn"],
+                                          (lambda i: pos[i][2] != "endlearn"), length, index+1)
+                index -= 1
+            elif pos[index][2] == "response":
+                within_block["response"].append(self.__responseTags(text, pos, index))
+                index += 1
+            elif pos[index][2] == "client":
+                index += 1
+                if pos[index][2] != "endclient":
+                    raise SyntaxError(self.__errorMessage("endclient", pos[index][2]))
+                within_block["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
+            elif pos[index][2] == "prev":
+                index += 1
+                if pos[index][2] != "endprev":
+                    raise SyntaxError(self.__errorMessage("endprev", pos[index][2]))
+                within_block["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             else:
-                raise NameError("Invalid Tag '%s'" %  pos[index][2])
-            index+=1
-        return index+1,(withinblock["client"][0],
-                    withinblock["prev"][0] if withinblock["prev"] else None,
-                    withinblock["response"],
-                    withinblock["learn"] )
-    
-    def __GroupTags(self,text,pos,groups,condition,length,index=0,name=""):
-        pairs=[]
-        defaults=[]
+                raise NameError("Invalid Tag '%s'" % pos[index][2])
+            index += 1
+        return index+1, (within_block["client"][0],
+                         within_block["prev"][0] if within_block["prev"] else None,
+                         within_block["response"],
+                         within_block["learn"])
+
+    def __group_tags(self, text, pos, groups, condition, length, index=0, name=""):
+        pairs = []
+        defaults = []
         while condition(index):
-            if pos[index][2]=="block":
-                p,within = self.__blockTags(text,pos,length,index+1)
+            if pos[index][2] == "block":
+                p, within = self.__blockTags(text, pos, length, index+1)
                 pairs.append(within)
-                index=p
-            elif pos[index][2]=="response":
-                defaults.append(self.__responseTags(text,pos,index))
-                index+=2
-            elif pos[index][2]=="group":
-                child_name=(name+"."+pos[index][3].strip()) if name else pos[index][3].strip()
-                index = self.__GroupTags(text,pos,groups,(lambda i:pos[i][2]!="endgroup"),length,index+1, name=child_name)
+                index = p
+            elif pos[index][2] == "response":
+                defaults.append(self.__responseTags(text, pos, index))
+                index += 2
+            elif pos[index][2] == "group":
+                child_name = (name+"."+pos[index][3].strip()) if name else pos[index][3].strip()
+                index = self.__group_tags(text, pos, groups,
+                                          (lambda i: pos[i][2] != "endgroup"), length, index+1, name=child_name)
             else:
-                raise SyntaxError(self.__errorMessage('group, block, or response',pos[index][2]))
+                raise SyntaxError(self.__errorMessage('group, block, or response', pos[index][2]))
         if name in groups:
             groups[name]["pairs"].extend(pairs)
             groups[name]["defaults"].extend(defaults)
         else:
-            groups[name]={"pairs":pairs,"defaults":defaults}
+            groups[name] = {"pairs": pairs, "defaults": defaults}
         return index+1
-        
-    def __processTemplateFile(self,fileName):
-        with open(fileName, encoding='utf-8') as template:
+
+    def __process_template_file(self, file_name):
+        with open(file_name, encoding='utf-8') as template:
             text = template.read()
-        pos = [(m.start(0),m.end(0),text[m.start(1):m.end(1)],text[m.start(4):m.end(4)]) \
-                for m in  re.finditer( 
+        pos = [(m.start(0), m.end(0), text[m.start(1):m.end(1)], text[m.start(4):m.end(4)])
+               for m in re.finditer(
                     r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]*|%(?=[^}]))%}',
                     text)
-              ]
+               ]
         length = len(pos)
         groups = {}
-        self.__GroupTags(text,pos,groups,(lambda i:i<length),length)
+        self.__group_tags(text, pos, groups, (lambda i: i < length), length)
         return groups
-    
-    def __build_pattern(self,pattern):
-        if pattern!=None:
-          try:return re.compile(self.__normalize(pattern), re.IGNORECASE)
-          except Exception as e:
-            e.args=(str(e)+ " in pattern "+pattern, )
-            raise e
-      
-      
-    def __processLearn(self,pairs):
+
+    def __build_pattern(self, pattern):
+        if pattern is not None:
+            try:
+                return re.compile(self.__normalize(pattern), re.IGNORECASE)
+            except Exception as e:
+                e.args = (str(e) + " in pattern "+pattern, )
+                raise e
+
+    def __process_learn(self, pairs):
         for topic in pairs:
-            if topic not in self._pairs:self._pairs[topic]={"pairs":[],"defaults":[]}
-            self._pairs[topic]["defaults"].extend([(i,self._condition(i)) 
-                                                    for i in pairs[topic].get("defaults",[])])
+            if topic not in self._pairs:
+                self._pairs[topic] = {"pairs": [], "defaults": []}
+            self._pairs[topic]["defaults"].extend([(i, self._condition(i))
+                                                   for i in pairs[topic].get("defaults", [])])
             for pair in pairs[topic]["pairs"][::-1]:
                 learn, previous = {}, None
                 length = len(pair)
-                if length>3:client,previous,responses,learn = pair[:4]
-                elif length==3:
-                    if type(pair[1]) in (tuple,list):client,responses,learn = pair
-                    else:client,previous,responses = pair
-                elif length==2 and type(pair[1]) in (tuple,list):client,responses = pair
-                else:raise ValueError("Response not specified")
+                if length > 3:
+                    client, previous, responses, learn = pair[:4]
+                elif length == 3:
+                    if type(pair[1]) in (tuple, list):
+                        client, responses, learn = pair
+                    else:
+                        client, previous, responses = pair
+                elif length == 2 and type(pair[1]) in (tuple, list):
+                    client, responses = pair
+                else:
+                    raise ValueError("Response not specified")
                 if type(learn) != dict:
-                    raise TypeError("Invalid Type for learn expected dict got '%s'" % type(l).__name__)
-                self._pairs[topic]["pairs"].insert(0,(self.__build_pattern(client),
-                                                      self.__build_pattern(previous),
-                                                      tuple((i,self._condition(i)) for i in responses),
-                                                      learn))
-    
-    def _startNewSession(self,sessionID,topic=''):
-        self._memory[sessionID]={}
-        self.conversation[sessionID]=[]
-        self.attr[sessionID]={"match":None,"pmatch":None,"_quote":False,"substitute":True}
-        self.topic[sessionID] = topic
+                    raise TypeError("Invalid Type for learn expected dict got '%s'" % type(learn).__name__)
+                self._pairs[topic]["pairs"].insert(0, (self.__build_pattern(client),
+                                                       self.__build_pattern(previous),
+                                                       tuple((i, self._condition(i)) for i in responses),
+                                                       learn))
 
-    def _restructure(self,group,index=None):
-        if index==None:
-            toremove={}
-            allElem = list(group)
+    def start_new_session(self, session_id, topic=''):
+        self._memory[session_id] = {}
+        self.conversation[session_id] = []
+        self.attr[session_id] = {"match": None, "pmatch": None, "_quote": False, "substitute": True}
+        self.topic[session_id] = topic
+
+    def _restructure(self, group, index=None):
+        if index is None:
+            to_remove = {}
+            groups = list(group)
             for i in group:
-                toremove[i]=set()
+                to_remove[i] = set()
                 for j in group[i]:
-                    toremove[i].update(set(group[i]).intersection(group[j]))
+                    to_remove[i].update(set(group[i]).intersection(group[j]))
             for i in group:
-                for j in toremove[i]:
+                for j in to_remove[i]:
                     group[i].remove(j)
-                    try: allElem.remove(j)
-                    except: pass
+                    try:
+                        groups.remove(j)
+                    except Exception:
+                        pass
             index = list(group)
-            toremove = [j for i in list(allElem) for j in group[i]]
-            for i in toremove:
-                try: allElem.remove(i)
-                except: pass
+            to_remove = [j for i in list(groups) for j in group[i]]
+            for i in to_remove:
+                try:
+                    groups.remove(i)
+                except Exception:
+                    pass
         else:
-            allElem = list(index)
+            groups = list(index)
         while index:
             i = index.pop()
-            if type(group[i])==list:
-                group[i] = self._restructure(dict(group),group[i])
+            if type(group[i]) == list:
+                group[i] = self._restructure(dict(group), group[i])
                 for j in list(group[i]):
-                    try: index.remove(j)
-                    except: pass
-        return {i:group[i] for i in allElem}
-        
-    def _subAction(self,group,start_end_pair,action):
-        return {i:{
-                    "action":action[i],
-                    "start":start_end_pair[i][0],
-                    "end":start_end_pair[i][1],
-                    "child":self._subAction(group[i],start_end_pair,action)
+                    try:
+                        index.remove(j)
+                    except Exception:
+                        pass
+        return {i: group[i] for i in groups}
+
+    def _sub_action(self, group, start_end_pair, action):
+        return {i: {
+                    "action": action[i],
+                    "start": start_end_pair[i][0],
+                    "end": start_end_pair[i][1],
+                    "child": self._sub_action(group[i], start_end_pair, action)
                   } for i in group}
-    
-    def _getWithin(self,group,index):
 
-        
-        def init_group(i):
-            group[index[i]]["within"]=[]
-            orderedGroup.append(group[index[i]])
-            return i+1
+    def _get_within(self, group, index):
 
-        def append_group(pos,i):
-            pos,within = self._getWithin(group,index[pos:])
-            group[index[i-1]]["within"]+=within
-            return pos
+        def init_group(p):
+            group[index[p]]["within"] = []
+            ordered_group.append(group[index[i]])
+            return p+1
+
+        def append_group(position, p):
+            position, within = self._get_within(group, index[position:])
+            group[index[p-1]]["within"] += within
+            return position
 
         i = 0
-        orderedGroup = []
-        while i<len(index):
-            if group[index[i]]["action"]=="if":
-                i=init_group(i)
-                startIF = True 
-                while startIF:
-                    if i>=len(index):
+        ordered_group = []
+        while i < len(index):
+            if group[index[i]]["action"] == "if":
+                i = init_group(i)
+                start_if = True
+                while start_if:
+                    if i >= len(index):
                         raise SyntaxError("If not closed in Conditional statement")
-                    if group[index[i]]["action"]=="elif": i = init_group(i)
-                    elif group[index[i]]["action"]=="else":
-                        pos = i = init_group(i)
-                        startIF = False
-                        while group[index[pos]]["action"]!="endif": pos = append_group(pos,i)+i
-                        i = init_group(pos)
-                    elif group[index[i]]["action"]=="endif":
+                    if group[index[i]]["action"] == "elif":
                         i = init_group(i)
-                        startIF = False
+                    elif group[index[i]]["action"] == "else":
+                        pos = i = init_group(i)
+                        start_if = False
+                        while group[index[pos]]["action"] != "endif":
+                            pos = append_group(pos, i)+i
+                        i = init_group(pos)
+                    elif group[index[i]]["action"] == "endif":
+                        i = init_group(i)
+                        start_if = False
                     else:
-                        pos = append_group(i,i)
-                        for j in range(i,pos): del group[index[j]]
+                        pos = append_group(i, i)
+                        for j in range(i, pos):
+                            del group[index[j]]
                         i += pos
-            elif group[index[i]]["action"] in self.__action_handlers .keys():
-                orderedGroup.append(group[index[i]])
+            elif group[index[i]]["action"] in self.__action_handlers.keys():
+                ordered_group.append(group[index[i]])
                 i += 1
-            else:return i,orderedGroup
-        return i,orderedGroup
-                
-    def _setwithin(self,group):
-        old =group
+            else:
+                return i, ordered_group
+        return i, ordered_group
+
+    def _set_within(self, group):
         for i in group:
             if group[i]["child"]:
-                group[i]["child"] = self._setwithin(group[i]["child"])
+                group[i]["child"] = self._set_within(group[i]["child"])
         index = list(group)
-        index.sort(key =lambda x: group[x]["start"])
-        pos,orderedGroup = self._getWithin(group,index)
-        if pos<len(index):
+        index.sort(key=lambda x: group[x]["start"])
+        pos, ordered_group = self._get_within(group, index)
+        if pos < len(index):
             raise SyntaxError("invalid statement")
-        return orderedGroup
-    
-    def _inherit(self,start_end_pair,action):
+        return ordered_group
+
+    def _inherit(self, start_end_pair, action):
         group = {}
         for i in range(len(start_end_pair)):
             group[i] = []
             for j in range(len(start_end_pair)):
-                if start_end_pair[i][0]<start_end_pair[j][0] and start_end_pair[i][1]>start_end_pair[j][1]:
+                if start_end_pair[i][0] < start_end_pair[j][0] and start_end_pair[i][1] > start_end_pair[j][1]:
                     group[i].append(j)
         group = self._restructure(group)
-        group = self._subAction(group,start_end_pair,action)
-        return self._setwithin(group)
+        group = self._sub_action(group, start_end_pair, action)
+        return self._set_within(group)
 
-    def _condition(self,response):
-        pos = [(m.start(0),m.end(0)) for m in re.finditer(r'{%?|%?}|\[|\]', response)]
-        newPos = [(start,end) for start,end in pos if (not start) or response[start-1]!="\\" ]
-        i=0
+    def _condition(self, response):
+        pos = [(m.start(0), m.end(0)) for m in re.finditer(r'{%?|%?}|\[|\]', response)]
+        new_pos = [(start, end) for start, end in pos if (not start) or response[start-1] != "\\"]
+        i = 0
         start_end_pair = []
         actions = []
-        while newPos:
-            for i in range(1,len(newPos)):
-                if response[newPos[i][1]-1] in "}]":
+        while new_pos:
+            for i in range(1, len(new_pos)):
+                if response[new_pos[i][1]-1] in "}]":
                     break
-            if response[newPos[i-1][0]] in "{[":
-                endTag = newPos.pop(i)
-                biginTag = newPos.pop(i-1)
-                bN = biginTag[1]-biginTag[0]
-                eN = endTag[1]-endTag[0]
-                if bN != eN or not ((response[biginTag[0]] == "{" and response[endTag[1]-1] == "}") or (response[biginTag[0]] == "[" and response[endTag[1]-1] == "]")):
+            if response[new_pos[i-1][0]] in "{[":
+                end_tag = new_pos.pop(i)
+                begin_tag = new_pos.pop(i-1)
+                b_n = begin_tag[1]-begin_tag[0]
+                e_n = end_tag[1]-end_tag[0]
+                if b_n != e_n or not ((response[begin_tag[0]] == "{" and response[end_tag[1]-1] == "}") or
+                                      (response[begin_tag[0]] == "[" and response[end_tag[1]-1] == "]")):
                     raise SyntaxError("invalid syntax '%s'" % response)
-                start_end_pair.append((biginTag[1],endTag[0]))
-                if bN == 2:
-                    statement = re.findall( r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',
-                                            response[biginTag[1]:endTag[0]])
+                start_end_pair.append((begin_tag[1], end_tag[0]))
+                if b_n == 2:
+                    statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',
+                                           response[begin_tag[1]: end_tag[0]])
                     if statement:
                         actions.append(statement[0])
                     else:
-                        raise SyntaxError("invalid statement '%s'" % response[biginTag[1]:endTag[0]] )
+                        raise SyntaxError("invalid statement '%s'" % response[begin_tag[1]:end_tag[0]])
                 else:
-                    if response[biginTag[0]] == "{":
+                    if response[begin_tag[0]] == "{":
                         actions.append("map")
                     else:
                         actions.append("eval")
             else:
                 raise SyntaxError("invalid syntax in \"%s\"" % response)
         try:
-            group = self._inherit(start_end_pair,actions)
+            group = self._inherit(start_end_pair, actions)
         except SyntaxError:
             raise SyntaxError("invalid statement in \"%s\"" % response)
         return group
-    
-    def _compile_reflections(self,normal):
-        sorted_refl = sorted(normal.keys(), key=len, reverse=True)
-        return  re.compile(r"\b({0})\b".format("|".join(map(re.escape,
-            sorted_refl))), re.IGNORECASE)
+
+    @staticmethod
+    def _compile_reflections(normal):
+        sorted_reflection = sorted(normal.keys(), key=len, reverse=True)
+        return re.compile(r"\b({0})\b".format("|".join(map(re.escape, sorted_reflection))), re.IGNORECASE)
 
     def _substitute(self, str):
         """
@@ -425,191 +438,204 @@ class Chat(object):
         :param str: The string to be mapped
         :rtype: str
         """
-        if not self.attr.get("substitute",True):return str
-        return self._regex.sub(lambda mo:
-                self._reflections[mo.string[mo.start():mo.end()]],
-                    str.lower())
-    
-    def _checkIF(self,con,sessionID = "general"):
-        pos = [(m.start(0),m.end(0),m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
-        if not pos:return con.strip()
-        res = prevres = True
-        prevO = None
-        pcsymbol = "&"
-        A = con[0:pos[0][0]].strip()
-        for j in  range(len(pos)):
-            s,e,o = pos[j]
-            try:B = con[e:pos[j+1][0]].strip()
-            except:B = con[e:].strip()
-            try:a,b = float(A),float(b)
-            except:a,b = A,B
-            try:res = self.__confitional_operator[o](a,b) and res
-            except:
-                try:prevres,res = self.__logical_operator[pcsymbol](prevres,res),True
-                except:SyntaxError("invalid conditional operator \"%s\"" % pcsymbol)
-                pcsymbol = o
-            A = B
-        return self.__logical_operator[pcsymbol](prevres,res)
-    
-    def __if_handler(self,i,condition,response,sessionID):
-        start = self.__get_start_pos(condition[i]["start"],response,"if")
+        if not self.attr.get("substitute", True):
+            return str
+        return self._regex.sub(lambda mo: self._reflections[mo.string[mo.start():mo.end()]], str.lower())
+
+    def _check_if(self, con, session_id="general"):
+        pos = [(m.start(0), m.end(0), m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
+        if not pos:
+            return con.strip()
+        res = prev_res = True
+        symbol = "&"
+        first = con[0:pos[0][0]].strip()
+        for j in range(len(pos)):
+            s, e, o = pos[j]
+            try:
+                second = con[e:pos[j+1][0]].strip()
+            except Exception:
+                second = con[e:].strip()
+            try:
+                a, b = float(first), float(second)
+            except Exception:
+                a, b = first, second
+            try:
+                res = self.__confitional_operator[o](a, b) and res
+            except Exception:
+                try:
+                    prev_res, res = self.__logical_operator[symbol](prev_res, res), True
+                except Exception:
+                    SyntaxError("invalid conditional operator \"%s\"" % symbol)
+                symbol = o
+            first = second
+        return self.__logical_operator[symbol](prev_res, res)
+
+    def __if_handler(self, i, condition, response, session_id):
+        start = self.__get_start_pos(condition[i]["start"], response, "if")
         end = condition[i]["end"]
         check = True
-        matchedIndex = None
-        _quote = self.attr[sessionID]["_quote"]
-        self.attr[sessionID]["_quote"] = False
-        substitute = self.attr.get("substitute",True)
+        matched_index = None
+        _quote = self.attr[session_id]["_quote"]
+        self.attr[session_id]["_quote"] = False
+        substitute = self.attr.get("substitute", True)
         self.attr["substitute"] = False
         while check:
-            con = self._checkAndEvaluateCondition(response,condition[i]["child"],start,end,sessionID =sessionID)
-            i+=1
-            if self._checkIF(con,sessionID =sessionID):
-                matchedIndex = i-1
+            con = self._check_and_evaluate_condition(response, condition[i]["child"], start, end, session_id=session_id)
+            i += 1
+            if self._check_if(con, session_id=session_id):
+                matched_index = i-1
                 while condition[i]["action"] != "endif":
-                    i+=1
+                    i += 1
                 check = False
             elif condition[i]["action"] == "else":
-                matchedIndex = i
+                matched_index = i
                 while condition[i]["action"] != "endif":
-                    i+=1
-                check = False                        
+                    i += 1
+                check = False
             elif condition[i]["action"] == "elif":
-                start = self.__get_start_pos(condition[i]["start"],response,"elif")
+                start = self.__get_start_pos(condition[i]["start"], response, "elif")
                 end = condition[i]["end"]
             elif condition[i]["action"] == "endif":
                 check = False
-        self.attr[sessionID]["_quote"] = _quote
+        self.attr[session_id]["_quote"] = _quote
         self.attr["substitute"] = substitute
-        return ((self._checkAndEvaluateCondition(
+        return ((self._check_and_evaluate_condition(
                                 response,
-                                condition[matchedIndex]["within"],
-                                condition[matchedIndex]["end"]+2,
-                                condition[matchedIndex+1]["start"]-2,
-                                sessionID =sessionID
-                                ) if matchedIndex!=None else ""),i)
-    
-    def __handler(self,condition,response,action,sessionID):
-        return self._checkAndEvaluateCondition(
+                                condition[matched_index]["within"],
+                                condition[matched_index]["end"]+2,
+                                condition[matched_index+1]["start"]-2,
+                                session_id=session_id
+                                ) if matched_index is not None else ""), i)
+
+    def __handler(self, condition, response, action, session_id):
+        return self._check_and_evaluate_condition(
                                 response,
                                 condition["child"],
-                                self.__get_start_pos(condition["start"],response,action),
+                                self.__get_start_pos(condition["start"], response, action),
                                 condition["end"],
-                                sessionID =sessionID
+                                session_id=session_id
                                 )
-    
-    def __chat_handler(self,i,condition,response,sessionID):
-        substitute = self.attr.get("substitute",True)
+
+    def __chat_handler(self, i, condition, response, session_id):
+        substitute = self.attr.get("substitute", True)
         self.attr["substitute"] = False
-        response = self.respond(self.__handler(condition[i],response,"chat",sessionID),sessionID =sessionID)
+        response = self.respond(self.__handler(condition[i], response, "chat", session_id), session_id=session_id)
         self.attr["substitute"] = substitute
         return response
-    
-    def __low_handler(self,i,condition,response,sessionID):
-        return self.__handler(condition[i],response,"low",sessionID).lower()
-        
-    def __up_handler(self,i,condition,response,sessionID):
-        return self.__handler(condition[i],response,"up",sessionID).upper()
-        
-    def __cap_handler(self,i,condition,response,sessionID):
-        return self.__handler(condition[i],response,"cap",sessionID).capitalize()
-    
-    def __call_handler(self,i,condition,response,sessionID):
-        return self.call.call(self.__handler(condition[i],response,"call",sessionID),sessionID =sessionID)
-    
-    def __topic_handler(self,i,condition,response,sessionID):
-        self.topic[sessionID] = self.__handler(condition[i],response,"topic",sessionID).strip()
-        return ""
-        
-    def __get_start_pos(self,start,response,exp):
-        return start+re.compile(r"([\s\t]*"+exp+"[\s\t]+)").search(response[start:]).end(1)
 
-    def __map_handler(self,i,condition,response,sessionID):
+    def __low_handler(self, i, condition, response, session_id):
+        return self.__handler(condition[i], response, "low", session_id).lower()
+
+    def __up_handler(self, i, condition, response, session_id):
+        return self.__handler(condition[i], response, "up", session_id).upper()
+
+    def __cap_handler(self, i, condition, response, session_id):
+        return self.__handler(condition[i], response, "cap", session_id).capitalize()
+
+    def __call_handler(self, i, condition, response, session_id):
+        return self.call.call(self.__handler(condition[i], response, "call", session_id), session_id=session_id)
+
+    def __topic_handler(self, i, condition, response, session_id):
+        self.topic[session_id] = self.__handler(condition[i], response, "topic", session_id).strip()
+        return ""
+
+    @staticmethod
+    def __get_start_pos(start, response, exp):
+        return start+re.compile(r"([\s\t]*"+exp+r"[\s\t]+)").search(response[start:]).end(1)
+
+    def __map_handler(self, i, condition, response, session_id):
         start = condition[i]["start"]
         end = condition[i]["end"]
         think = False
         if response[start] == "!":
             think = True
-            start +=1
-        content = self._checkAndEvaluateCondition(
+            start += 1
+        content = self._check_and_evaluate_condition(
                                     response,
                                     condition[i]["child"],
                                     start,
                                     end,
-                                    sessionID =sessionID
+                                    session_id=session_id
                                     ).strip().split(":")
         name = content[0]
-        thisIndex=0
-        for thisIndex in range(1,len(content)):
-            if name[-1]=="\\":
-                name += ":"+content[thisIndex]
+        this_index = 0
+        for this_index in range(1, len(content)):
+            if name[-1] == "\\":
+                name += ":"+content[this_index]
             else:
-                thisIndex-=1
+                this_index -= 1
                 break
-        thisIndex+=1
+        this_index += 1
         name = name.strip().lower()
-        if thisIndex<(len(content)):
-            value = content[thisIndex]
-            for thisIndex in range(thisIndex+1,len(content)):
-                if value[-1]=="\\":
-                    value += ":"+content[thisIndex]
+        if this_index < (len(content)):
+            value = content[this_index]
+            for this_index in range(this_index+1, len(content)):
+                if value[-1] == "\\":
+                    value += ":"+content[this_index]
                 else:
                     break
-            self._memory[sessionID][name] = self._substitute(value.strip())
-        return self._memory[sessionID][name] if not think and name in self._memory[sessionID] else ""
-    
-    def __eval_handler(self,i,condition,restopnse,sessionID):
+            self._memory[session_id][name] = self._substitute(value.strip())
+        return self._memory[session_id][name] if not think and name in self._memory[session_id] else ""
+
+    def __eval_handler(self, i, condition, response, session_id):
         start = condition[i]["start"]
         end = condition[i]["end"]
         think = False
         if response[start] == "!":
             think = True
-            start +=1
-        _quote = self.attr[sessionID]["_quote"]
-        self.attr[sessionID]["_quote"] = True
-        content = self._checkAndEvaluateCondition(
+            start += 1
+        _quote = self.attr[session_id]["_quote"]
+        self.attr[session_id]["_quote"] = True
+        content = self._check_and_evaluate_condition(
                                     response,
                                     condition[i]["child"],
                                     start,
                                     end,
-                                    sessionID =sessionID
+                                    session_id=session_id
                                     ).strip()
-        self.attr[sessionID]["_quote"] = _quote
-        vals = content.split(",")
-        names = vals[0].split(":")
-        apiName = names[0]
-        methodName = ":".join(names[1:])
-        data={}
-        key=None
-        for i in vals[1:]:
-            pair = vals[i].split(":")
-            if len(pair)>=2:
+        self.attr[session_id]["_quote"] = _quote
+        values = content.split(",")
+        names = values[0].split(":")
+        api_name = names[0]
+        method_name = ":".join(names[1:])
+        data = {}
+        key = None
+        for i in values[1:]:
+            pair = i.split(":")
+            if len(pair) >= 2:
                 key = pair[0]
-                data[key]=":".join(pair[1:])
-            elif key!=None:
-                data[key]+=","+pair[0]
-            else:raise SyntaxError("invalid syntax '%s'" % response[start:end] )
-        result = self.__api_handler(apiName,methodName,data)
+                data[key] = ":".join(pair[1:])
+            elif key is not None:
+                data[key] += ","+pair[0]
+            else:
+                raise SyntaxError("invalid syntax '%s'" % response[start:end])
+        result = self.__api_handler(api_name, method_name, data)
         return "" if think else result
-        
-    def __api_request(self,url,method,**karg):
-        try:return requests.__dict__[method.lower().strip()](url,**karg)
-        except requests.exceptions.MissingSchema as e:
-            return self.__api_request("http://"+url,method,**karg)
-        except requests.exceptions.ConnectionError as e:
+
+    def __api_request(self, url, method, **karg):
+        try:
+            return requests.__dict__[method.lower().strip()](url, **karg)
+        except requests.exceptions.MissingSchema:
+            return self.__api_request("http://"+url, method, **karg)
+        except requests.exceptions.ConnectionError:
             raise RuntimeError("Couldn't connect to server (unreachable). Check your network")
-        except KeyError as e:
+        except KeyError:
             raise RuntimeError("Invalid method name '%s' in api.json" % method)
-    
-    def __api_handler(self,apiName,methodName,data={}):
-        if apiName not in self._api or methodName not in self._api[apiName]:
-            raise RuntimeError("Invalid method name '%s' for api '%s' ",(methodName,apiName))
-        api_params = dict(self._api[apiName][methodName])
-        if "auth" in self._api[apiName]:
-            try:api_params["cookies"] = self.__api_request(**self._api[apiName]["auth"]).cookies
-            except:raise ValueError("In api.json 'auth' of '%s' is wrongly configured." % apiName)
-        param = "params" if self._api[apiName][methodName]["method"].upper().strip() == "GET" else "data"
-        try:api_params[param].update(data)
-        except:api_params[param] = data
+
+    def __api_handler(self, api_name, method_name, data={}):
+        if api_name not in self._api or method_name not in self._api[api_name]:
+            raise RuntimeError("Invalid method name '%s' for api '%s' ", (method_name, api_name))
+        api_params = dict(self._api[api_name][method_name])
+        if "auth" in self._api[api_name]:
+            try:
+                api_params["cookies"] = self.__api_request(**self._api[api_name]["auth"]).cookies
+            except Exception:
+                raise ValueError("In api.json 'auth' of '%s' is wrongly configured." % api_name)
+        param = "params" if self._api[api_name][method_name]["method"].upper().strip() == "GET" else "data"
+        try:
+            api_params[param].update(data)
+        except Exception:
+            api_params[param] = data
         api_type = "normal"
         if "type" in api_params:
             api_type = api_params["type"]
@@ -619,128 +645,151 @@ class Chat(object):
             api_data_getter = api_params["value_getter"]
             del api_params["value_getter"]
         response = self.__api_request(**api_params)
-        responseText = response.json() if api_type.upper().strip()=="JSON" else response.content
+        response_text = response.json() if api_type.upper().strip() == "JSON" else response.content
         for key in api_data_getter:
-            responseText = responseText[key]
-        return responseText
-    
-    def _quote(self,string,sessionID):
-        if self.attr[sessionID]["_quote"]:
-            try:return urllib2.quote(string)
-            except:return urllib2.quote(string.encode("UTF-8"))
+            response_text = response_text[key]
+        return response_text
+
+    def _quote(self, string, session_id):
+        if self.attr[session_id]["_quote"]:
+            try:
+                return quote(string)
+            except Exception:
+                return quote(string.encode("UTF-8"))
         return string
 
-    def __substituteFromClientStatement(self,match,prevResponse,extraSymbol="",sessionID = "general"):
+    def __substitute_from_client_statement(self, match, prev_response, extra_symbol="", session_id="general"):
         """
-        Substitute from Client statement into respose
+        Substitute from Client statement into response
         """
         prev = 0
-        startPadding = 1+len(extraSymbol)
-        finalResponse = ""
-        for m in re.finditer(r'%'+extraSymbol+'[0-9]+', prevResponse):
+        start_padding = 1+len(extra_symbol)
+        final_response = ""
+        for m in re.finditer(r'%'+extra_symbol+'[0-9]+', prev_response):
             start = m.start(0)
-            end = m.end(0)     
-            num = int(prevResponse[start+startPadding:end])
-            finalResponse += prevResponse[prev:start]
-            try:finalResponse += self._quote(self._substitute(match.group(num)),sessionID)
-            except IndexError as e:pass
+            end = m.end(0)
+            num = int(prev_response[start+start_padding:end])
+            final_response += prev_response[prev:start]
+            try:
+                final_response += self._quote(self._substitute(match.group(num)), session_id)
+            except IndexError:
+                pass
             prev = end
-        namedGroup = match.groupdict()
-        if namedGroup:
-            prevResponse = finalResponse + prevResponse[prev:]
-            finalResponse = ""
+        named_group = match.groupdict()
+        if named_group:
+            prev_response = final_response + prev_response[prev:]
+            final_response = ""
             prev = 0
-            for m in re.finditer(r'%'+extraSymbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prevResponse):
+            for m in re.finditer(r'%'+extra_symbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prev_response):
                 start = m.start(1)
                 end = m.end(1)
-                finalResponse += prevResponse[prev:start]
+                final_response += prev_response[prev:start]
                 try:
-                    value = namedGroup[prevResponse[start+startPadding:end]]
-                    if value:finalResponse += self._quote(self._substitute(value),sessionID)
-                except KeyError as e:pass
+                    value = named_group[prev_response[start+start_padding:end]]
+                    if value:
+                        final_response += self._quote(self._substitute(value), session_id)
+                except KeyError:
+                    pass
                 prev = end
-        return finalResponse + prevResponse[prev:]
-    
-    def _checkAndEvaluateCondition(self, response,condition=[],startIndex=0,endIndex=None,sessionID = "general"):
-        endIndex = endIndex if endIndex != None else len(response)
-        if not condition:
-            finalResponse = self.__substituteFromClientStatement(self.attr[sessionID]["match"],response[startIndex:endIndex],sessionID = sessionID)
-            parentMatch=self.attr[sessionID]["pmatch"]
-            return self.__substituteFromClientStatement(parentMatch,finalResponse,extraSymbol = '!',sessionID = sessionID) if parentMatch!=None else finalResponse
-        i=0
-        finalResponse = ""
-        while i < len(condition):
-            pos =  condition[i]["start"]-(1 if condition[i]["action"] in  ["map","eval"] else 2) 
-            finalResponse += self._checkAndEvaluateCondition(response[startIndex:pos],sessionID =sessionID)
-            _quote = self.attr[sessionID]["_quote"]
-            try:
-                self.attr[sessionID]["_quote"] = False
-                tempResponse = self.__action_handlers[condition[i]["action"]](i,condition,response,sessionID)
-                self.attr[sessionID]["_quote"] = _quote
-                finalResponse += self._quote(tempResponse,sessionID)
-            except KeyError as e:
-                if condition[i]["action"] == "if":
-                    self.attr[sessionID]["_quote"] = _quote
-                    response_txt,i = self.__if_handler(i,condition,response,sessionID)
-                    finalResponse += response_txt
-            startIndex = condition[i]["end"]+(1 if condition[i]["action"] in  ["map","eval"] else 2) 
-            i+=1
-        self.attr[sessionID]["_quote"] = _quote
-        finalResponse += self._checkAndEvaluateCondition(response[startIndex:endIndex],sessionID = sessionID)
-        return finalResponse
-    
-    def _wildcards(self, response, match, parentMatch,sessionID = "general"):
-        self.attr[sessionID]["match"]=match
-        self.attr[sessionID]["pmatch"]=parentMatch
-        response,condition =  response
-        return re.sub(r'\\([\[\]{}%:])',r"\1",self._checkAndEvaluateCondition(response,condition,sessionID = sessionID ))
+        return final_response + prev_response[prev:]
 
-    def __chose_and_process(self,choices,match,parentMatch,sessionID):
+    def _check_and_evaluate_condition(self, response, condition=[], start_index=0, end_index=None,
+                                      session_id="general"):
+        end_index = end_index if end_index is not None else len(response)
+        if not condition:
+            final_response = self.__substitute_from_client_statement(self.attr[session_id]["match"],
+                                                                     response[start_index:end_index],
+                                                                     session_id=session_id)
+            parent_match = self.attr[session_id]["pmatch"]
+            return self.__substitute_from_client_statement(parent_match, final_response, extra_symbol='!',
+                                                           session_id=session_id)\
+                if parent_match is not None else final_response
+        i = 0
+        final_response = ""
+        _quote = self.attr[session_id].get("_quote", True)
+        while i < len(condition):
+            pos = condition[i]["start"]-(1 if condition[i]["action"] in ("map", "eval") else 2)
+            final_response += self._check_and_evaluate_condition(response[start_index:pos], session_id=session_id)
+            _quote = self.attr[session_id]["_quote"]
+            try:
+                self.attr[session_id]["_quote"] = False
+                temp_response = self.__action_handlers[condition[i]["action"]](i, condition, response, session_id)
+                self.attr[session_id]["_quote"] = _quote
+                final_response += self._quote(temp_response, session_id)
+            except KeyError:
+                if condition[i]["action"] == "if":
+                    self.attr[session_id]["_quote"] = _quote
+                    response_txt, i = self.__if_handler(i, condition, response, session_id)
+                    final_response += response_txt
+            start_index = condition[i]["end"]+(1 if condition[i]["action"] in ("map", "eval") else 2)
+            i += 1
+        self.attr[session_id]["_quote"] = _quote
+        final_response += self._check_and_evaluate_condition(response[start_index:end_index], session_id=session_id)
+        return final_response
+
+    def _wildcards(self, response, match, parent_match, session_id="general"):
+        self.attr[session_id]["match"] = match
+        self.attr[session_id]["pmatch"] = parent_match
+        response, condition = response
+        return re.sub(r'\\([\[\]{}%:])', r"\1",
+                      self._check_and_evaluate_condition(response, condition, session_id=session_id))
+
+    def __chose_and_process(self, choices, match, parent_match, session_id):
         resp = random.choice(choices)    # pick a random response
-        resp = self._wildcards(resp, match, parentMatch,sessionID = sessionID) # process wildcards
+        resp = self._wildcards(resp, match, parent_match, session_id=session_id)  # process wildcards
         # fix munged punctuation at the end
-        if resp[-2:] == '?.': resp = resp[:-2] + '.'
-        if resp[-2:] == '??': resp = resp[:-2] + '?'
+        if resp[-2:] == '?.':
+            resp = resp[:-2] + '.'
+        if resp[-2:] == '??':
+            resp = resp[:-2] + '?'
         return resp
 
-    def __intend_selection(self, text, previousText, current_topic, sessionID):
-        for (pattern, parent, response,learn) in self._pairs[current_topic]["pairs"]:# check each pattern
-          match = pattern.match(text)
-          if not match:continue
-          if parent==None:return match,None,response,learn
-          parentMatch = parent.match(previousText)
-          if parentMatch:# did the pattern match?
-            return match,parentMatch,response,learn
+    def __intend_selection(self, text, previous_text, current_topic, session_id):
+        for (pattern, parent, response, learn) in self._pairs[current_topic]["pairs"]:  # check each pattern
+            match = pattern.match(text)
+            if not match:
+                continue
+            if parent is None:
+                return match, None, response, learn
+            parent_match = parent.match(previous_text)
+            if parent_match:  # did the pattern match?
+                return match, parent_match, response, learn
 
-    def __response_on_topic(self, text, previousText, text_correction, current_topic, sessionID = "general"):
-        match=self.__intend_selection(text, previousText, current_topic, sessionID) or \
-              self.__intend_selection(text_correction, previousText, current_topic, sessionID)
+    def __response_on_topic(self, text, previous_text, text_correction, current_topic, session_id="general"):
+        match = self.__intend_selection(text, previous_text, current_topic, session_id) or \
+              self.__intend_selection(text_correction, previous_text, current_topic, session_id)
         if match:
-          match,parentMatch,response,learn=match
-          if learn:
-            self.__processLearn({
-                  self._wildcards((topic,self._condition(topic)), match, parentMatch,sessionID = sessionID): \
-                  {'pairs':[self.__substituteInLearn(pair, match, parentMatch,sessionID = sessionID) for pair in learn[topic]['pairs']],
-                   'defaults':[self._wildcards((default,self._condition(default)), match, parentMatch,sessionID = sessionID) for default in learn[topic]['defaults']]  } \
-                  for topic in learn})
-          return self.__chose_and_process(response,match,parentMatch,sessionID)
+            match, parent_match, response, learn = match
+            if learn:
+                self.__process_learn({
+                    self._wildcards((topic, self._condition(topic)), match, parent_match, session_id=session_id):
+                    {
+                        'pairs': [self.__substitute_in_learn(pair, match, parent_match, session_id=session_id)
+                                  for pair in learn[topic]['pairs']],
+                        'defaults': [self._wildcards((default, self._condition(default)), match,
+                                                     parent_match, session_id=session_id)
+                                     for default in learn[topic]['defaults']]}
+                    for topic in learn
+                })
+            return self.__chose_and_process(response, match, parent_match, session_id)
         if self._pairs[current_topic]["defaults"]:
-          return self.__chose_and_process(self._pairs[current_topic]["defaults"],dummyMatch(text), None,sessionID)
+            return self.__chose_and_process(self._pairs[current_topic]["defaults"], DummyMatch(text), None, session_id)
         raise ValueError("No match found")
 
-    def __correction(self,text):
+    @staticmethod
+    def __correction(text):
         """
         spell correction
         """
         new_text = []
         for i in text.split():
-            if len(i)>3:
-                low = i.lower()
+            if len(i) > 3:
                 new_text.append(i if WORDS[i] else correction(i))
-            else:new_text.append(i)
+            else:
+                new_text.append(i)
         return " ".join(new_text)
 
-    def respond(self, text, sessionID = "general"):
+    def respond(self, text, session_id="general"):
         """
         Generate a response to the user input.
 
@@ -748,80 +797,96 @@ class Chat(object):
         :param text: The string to be mapped
         :rtype: str
         """
-        text =  self.__normalize(text)
-        previousText = self.__normalize(self.conversation[sessionID][-2])
+        text = self.__normalize(text)
+        previous_text = self.__normalize(self.conversation[session_id][-2])
         text_correction = self.__correction(text)
-        current_topic = self.topic[sessionID]
+        current_topic = self.topic[session_id]
         current_topic_order = current_topic.split(".")
         while current_topic_order:
-          try:return self.__response_on_topic(text, previousText, text_correction, current_topic, sessionID)
-          except ValueError as e:pass
-          current_topic_order.pop()
-          current_topic = ".".join(current_topic_order)
-        try:return self.__response_on_topic(text, previousText, text_correction, current_topic, sessionID)
-        except ValueError as e:return "Sorry I couldn't find anything relevant"
-    
-    def __substituteInLearn(self,pair, match, parentMatch,sessionID = "general"):
-        return tuple((self.__substituteInLearn(i, match, parentMatch,sessionID = sessionID) if type(i) in (tuple,list) else \
-            (i if type(i) == dict else (self._wildcards((i,self._condition(i)), match, parentMatch,sessionID = sessionID) if i else i))) for i in pair)
-      
-    def __get_topic_recursion(self,topics):
-        result={}
-        for topic in topics:
-          topic_depth=result
-          for sub_topic in topic.split("."):
-            topic_depth=topic_depth.setdefault(sub_topic,{})
+            try:
+                return self.__response_on_topic(text, previous_text, text_correction, current_topic, session_id)
+            except ValueError:
+                pass
+            current_topic_order.pop()
+            current_topic = ".".join(current_topic_order)
         try:
-          del result['']
-          result={'':result}
-        except:pass
-        return result
-  
-    def save_template(self,filename):
-        with open(filename,"w") as template:
-          for topic_name,sub_topic in self.__get_topic_recursion(self._pairs).items():
-            self.__genrate_and_write_template(template,self._pairs,topic_name,sub_topic)
+            return self.__response_on_topic(text, previous_text, text_correction, current_topic, session_id)
+        except ValueError:
+            return "Sorry I couldn't find anything relevant"
 
-    def __genrate_and_write_template(self,template,pairs,topic,sub_topics,base_path=None):
-        full_path=(base_path+"."+topic) if base else topic
-        if topic:template.write("{% group "+topic+" %}")
-        for topic_name,sub_topic in sub_topics.items():self.__genrate_and_write_template(template,pairs,topic_name,sub_topic,full_path)
-        for (pattern, parent, response,learn) in pairs[full_path]["pairs"]:
+    def __substitute_in_learn(self, pair, match, parent_match, session_id="general"):
+        return tuple((self.__substitute_in_learn(i, match, parent_match, session_id=session_id)
+                      if type(i) in (tuple, list) else
+                      (i if type(i) == dict else (self._wildcards((i, self._condition(i)), match, parent_match,
+                                                                  session_id=session_id) if i else i))) for i in pair)
+
+    @staticmethod
+    def __get_topic_recursion(topics):
+        result = {}
+        for topic in topics:
+            topic_depth = result
+            for sub_topic in topic.split("."):
+                topic_depth = topic_depth.setdefault(sub_topic, {})
+        try:
+            del result['']
+            result = {'': result}
+        except Exception:
+            pass
+        return result
+
+    def save_template(self, filename):
+        with open(filename, "w") as template:
+            for topic_name, sub_topic in self.__get_topic_recursion(self._pairs).items():
+                self.__generate_and_write_template(template, self._pairs, topic_name, sub_topic)
+
+    def __generate_and_write_template(self, template, pairs, topic, sub_topics, base_path=None):
+        full_path = (base_path+"."+topic) if base_path else topic
+        if topic:
+            template.write("{% group "+topic+" %}")
+        for topic_name, sub_topic in sub_topics.items():
+            self.__generate_and_write_template(template, pairs, topic_name, sub_topic, full_path)
+        for (pattern, parent, response, learn) in pairs[full_path]["pairs"]:
             template.write("{% block %}")
             template.write("{% client %}"+pattern.pattern+"{% endclient %}")
-            if parent!=None:
+            if parent is not None:
                 template.write("{% prev %}"+parent.pattern+"{% endprev %}")
             for res in response:
                 template.write("{% response %}"+res[0]+"{% response %}")
             if learn:
                 template.write("{% learn %}")
-                for topic_name,sub_topic in self.__get_topic_recursion(learn).items():self.__genrate_and_write_template(template,learn,topic_name,sub_topic)
+                for topic_name, sub_topic in self.__get_topic_recursion(learn).items():
+                    self.__generate_and_write_template(template, learn, topic_name, sub_topic)
                 template.write("{% endlearn %}")
             template.write("{% endblock %}")
         for res in pairs[topic]["defaults"]:
             template.write("{% response %}"+res[0]+"{% response %}")
-        if topic:template.write("{% endgroup %}")
-                        
-    # Hold a conversation with a chatbot                                       
-    def converse(self,firstQuestion=None ,quit="quit",sessionID = "general"):
-        if firstQuestion!= None:
-            self.conversation[sessionID].append(firstQuestion)
-            print (firstQuestion)
-        try:input_reader = raw_input
-        except NameError:input_reader = input
+        if topic:
+            template.write("{% endgroup %}")
+
+    # Hold a conversation with a chatbot
+    def converse(self, first_question=None, quit="quit", session_id="general"):
+        if first_question:
+            self.conversation[session_id].append(first_question)
+            print(first_question)
+        try:
+            input_reader = raw_input
+        except NameError:
+            input_reader = input
         input_sentence = ""
         while input_sentence != quit:
             input_sentence = quit
-            try: input_sentence = input_reader("> ")
-            except EOFError:print (input_sentence)
+            try:
+                input_sentence = input_reader("> ")
+            except EOFError:
+                print(input_sentence)
             if input_sentence:
-                self.conversation[sessionID].append(input_sentence)
-                while input_sentence[-1] in "!.": input_sentence = input_sentence[:-1]
-                self.conversation[sessionID].append(self.respond(input_sentence,sessionID=sessionID))
-                print (self.conversation[sessionID][-1])
+                self.conversation[session_id].append(input_sentence)
+                while input_sentence[-1] in "!.":
+                    input_sentence = input_sentence[:-1]
+                self.conversation[session_id].append(self.respond(input_sentence, session_id=session_id))
+                print(self.conversation[session_id][-1])
 
 
 def demo():
-    firstQuestion="Hi, how are you?"
-    Chat().converse(firstQuestion)
-
+    first_question = "Hi, how are you?"
+    Chat().converse(first_question)

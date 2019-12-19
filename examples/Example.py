@@ -1,24 +1,24 @@
-from chatbot import Chat,reflections,multiFunctionCall
-import wikipedia,os
-
+from chatbot import Chat, reflections, MultiFunctionCall
+import wikipedia
+import os
 import warnings
 warnings.filterwarnings("ignore")
 
-def whoIs(query,sessionID="general"):
+
+def who_is(query, session_id="general"):
     try:
         return wikipedia.summary(query)
-    except:
-        for newquery in wikipedia.search(query):
+    except Exception:
+        for new_query in wikipedia.search(query):
             try:
-                return wikipedia.summary(newquery)
-            except:
+                return wikipedia.summary(new_query)
+            except Exception:
                 pass
     return "I don't know about "+query
-        
-    
 
-call = multiFunctionCall({"whoIs":whoIs})
-firstQuestion="Hi, how are you?"
-chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)),"Example.template"), reflections,call=call)
-chat.converse(firstQuestion)
-#chat.save_template("test.template")
+
+call = MultiFunctionCall({"whoIs": who_is})
+first_question = "Hi, how are you?"
+chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Example.template"),
+            reflections, call=call)
+chat.converse(first_question)
