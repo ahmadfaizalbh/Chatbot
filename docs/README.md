@@ -40,23 +40,23 @@ Thank you for talking with me.
 ## Sample Code (with wikipedia search API integration)
 
 ```python
-from chatbot import Chat,reflections,multiFunctionCall
+from chatbot import Chat,MultiFunctionCall
 import wikipedia
 
-def whoIs(query,session_id="general"):
+def who_is(query,session_id="general"):
     try:
         return wikipedia.summary(query)
     except:
-        for newquery in wikipedia.search(query):
+        for new_query in wikipedia.search(query):
             try:
-                return wikipedia.summary(newquery)
+                return wikipedia.summary(new_query)
             except:
                 pass
     return "I don't know about "+query
         
-call = multiFunctionCall({"whoIs":whoIs})
+call = MultiFunctionCall({"whoIs":who_is})
 first_question="Hi, how are you?"
-Chat("examples/Example.template", reflections,call=call).converse(first_question)
+Chat("examples/Example.template",call=call).converse(first_question)
 ```
 
 For Detail on how to build Facebook messenger bot checkout  [Facebook Integration.ipynb](https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb)
