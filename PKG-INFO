@@ -42,7 +42,7 @@ Description: Chatbot
             from chatbot import Chat,reflections,multiFunctionCall
             import wikipedia
         
-            def whoIs(query,sessionID="general"):
+            def whoIs(query,session_id="general"):
                 try:
                     return wikipedia.summary(query)
                 except:
@@ -54,8 +54,8 @@ Description: Chatbot
                 return "I don't know about "+query
                     
             call = multiFunctionCall({"whoIs":whoIs})
-            firstQuestion="Hi, how are you?"
-            Chat("examples/Example.template", reflections,call=call).converse(firstQuestion)
+            first_question="Hi, how are you?"
+            Chat("examples/Example.template", reflections,call=call).converse(first_question)
         
         For Detail on how to build Facebook messenger bot checkout `Facebook
         Integration.ipynb <https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb>`__
