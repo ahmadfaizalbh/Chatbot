@@ -26,7 +26,7 @@ python setup.py install
 ```
 
 ## Demo
-```python
+```shell
 >>> from chatbot import demo
 >>> demo()
 Hi, how are you?
@@ -46,11 +46,11 @@ import wikipedia
 def who_is(query,session_id="general"):
     try:
         return wikipedia.summary(query)
-    except:
+    except Except:
         for new_query in wikipedia.search(query):
             try:
                 return wikipedia.summary(new_query)
-            except:
+            except Except:
                 pass
     return "I don't know about "+query
         

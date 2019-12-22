@@ -3,7 +3,7 @@ import random
 import requests
 import json
 from os import path
-from .default_substitutions import reflections, default_normal
+from . import default_substitutions as default
 from .spellcheck import correction, WORDS
 try:
     from urllib import quote
@@ -76,7 +76,8 @@ class Topic:
 
 
 class Chat(object):
-    def __init__(self, pairs=(), reflections=reflections, call=MultiFunctionCall(), api={}, normalizer=default_normal,
+    def __init__(self, pairs=(), reflections=default.reflections, call=MultiFunctionCall(),
+                 api={}, normalizer=default.normal,
                  default_template=path.join(path.dirname(path.abspath(__file__)),  "default.template")):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
@@ -153,11 +154,11 @@ class Chat(object):
         Substitute words in the string, according to the specified Normal,
         e.g. "I'm" -> "I am"
 
-        :type str: str
-        :param str: The string to be mapped
+        :type text: str
+        :param text: The string to be normalized
         :rtype: str
         """
-        return self._normalizer_regex.sub(lambda mo: self._normalizer[mo.string[mo.start():mo.end()]], text.lower())
+        return self._normalizer_regex.sub(lambda mo: self._normalizer[mo.string[mo.start():mo.end()].lower()], text)
 
     @staticmethod
     def __error_message(expected, found):
@@ -166,7 +167,7 @@ class Chat(object):
     def __response_tags(self, text, pos, index):
         next_index = index+1
         if pos[next_index][2] != "endresponse":
-            raise SyntaxError(self.__errorMessage("endresponse", pos[next_index][2]))
+            raise SyntaxError(self.__error_message("endresponse", pos[next_index][2]))
         return text[pos[index][1]:pos[next_index][0]].strip(" \t\n")
 
     def __block_tags(self, text, pos, length, index):
@@ -178,23 +179,23 @@ class Chat(object):
                                           (lambda i: pos[i][2] != "endlearn"), length, index+1)
                 index -= 1
             elif pos[index][2] == "response":
-                within_block["response"].append(self.__responseTags(text, pos, index))
+                within_block["response"].append(self.__response_tags(text, pos, index))
                 index += 1
             elif pos[index][2] == "client":
                 index += 1
                 if pos[index][2] != "endclient":
-                    raise SyntaxError(self.__errorMessage("endclient", pos[index][2]))
+                    raise SyntaxError(self.__error_message("endclient", pos[index][2]))
                 within_block["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             elif pos[index][2] == "prev":
                 index += 1
                 if pos[index][2] != "endprev":
-                    raise SyntaxError(self.__errorMessage("endprev", pos[index][2]))
+                    raise SyntaxError(self.__error_message("endprev", pos[index][2]))
                 within_block["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             else:
                 raise NameError("Invalid Tag '%s'" % pos[index][2])
             index += 1
-        return index+1, (within_block["client"][0],
-                         within_block["prev"][0] if within_block["prev"] else None,
+        return index+1, (within_block["client"],
+                         within_block["prev"] if within_block["prev"] else None,
                          within_block["response"],
                          within_block["learn"])
 
@@ -203,18 +204,18 @@ class Chat(object):
         defaults = []
         while condition(index):
             if pos[index][2] == "block":
-                p, within = self.__blockTags(text, pos, length, index+1)
+                p, within = self.__block_tags(text, pos, length, index+1)
                 pairs.append(within)
                 index = p
             elif pos[index][2] == "response":
-                defaults.append(self.__responseTags(text, pos, index))
+                defaults.append(self.__response_tags(text, pos, index))
                 index += 2
             elif pos[index][2] == "group":
                 child_name = (name+"."+pos[index][3].strip()) if name else pos[index][3].strip()
                 index = self.__group_tags(text, pos, groups,
                                           (lambda i: pos[i][2] != "endgroup"), length, index+1, name=child_name)
             else:
-                raise SyntaxError(self.__errorMessage('group, block, or response', pos[index][2]))
+                raise SyntaxError(self.__error_message('group, block, or response', pos[index][2]))
         if name in groups:
             groups[name]["pairs"].extend(pairs)
             groups[name]["defaults"].extend(defaults)
@@ -235,13 +236,19 @@ class Chat(object):
         self.__group_tags(text, pos, groups, (lambda i: i < length), length)
         return groups
 
-    def __build_pattern(self, pattern):
-        if pattern is not None:
+    def __build_pattern(self, patterns):
+        if patterns is None:
+            return
+        if type(patterns).__name__ in ('unicode', 'str'):
+            patterns = [patterns]
+        regexps = []
+        for pattern in patterns:
             try:
-                return re.compile(self.__normalize(pattern), re.IGNORECASE)
+                regexps.append(re.compile(self.__normalize(pattern), re.IGNORECASE))
             except Exception as e:
                 e.args = (str(e) + " in pattern "+pattern, )
                 raise e
+        return regexps
 
     def __process_learn(self, pairs):
         for topic in pairs:
@@ -323,7 +330,7 @@ class Chat(object):
 
         def init_group(p):
             group[index[p]]["within"] = []
-            ordered_group.append(group[index[i]])
+            ordered_group.append(group[index[p]])
             return p+1
 
         def append_group(position, p):
@@ -365,8 +372,7 @@ class Chat(object):
 
     def _set_within(self, group):
         for i in group:
-            if group[i]["child"]:
-                group[i]["child"] = self._set_within(group[i]["child"])
+            group[i]["child"] = self._set_within(group[i]["child"]) if group[i]["child"] else []
         index = list(group)
         index.sort(key=lambda x: group[x]["start"])
         pos, ordered_group = self._get_within(group, index)
@@ -460,12 +466,12 @@ class Chat(object):
             except Exception:
                 a, b = first, second
             try:
-                res = self.__confitional_operator[o](a, b) and res
+                res = self.__conditional_operator[o](a, b) and res
             except Exception:
                 try:
                     prev_res, res = self.__logical_operator[symbol](prev_res, res), True
                 except Exception:
-                    SyntaxError("invalid conditional operator \"%s\"" % symbol)
+                    raise SyntaxError("invalid conditional operator \"%s\"" % symbol)
                 symbol = o
             first = second
         return self.__logical_operator[symbol](prev_res, res)
@@ -516,43 +522,47 @@ class Chat(object):
                                 session_id=session_id
                                 )
 
-    def __chat_handler(self, i, condition, response, session_id):
+    def __chat_handler(self, condition, response, session_id):
         substitute = self.attr.get("substitute", True)
         self.attr["substitute"] = False
-        response = self.respond(self.__handler(condition[i], response, "chat", session_id), session_id=session_id)
+        response = self.respond(self.__handler(condition, response, "chat", session_id), session_id=session_id)
         self.attr["substitute"] = substitute
         return response
 
-    def __low_handler(self, i, condition, response, session_id):
-        return self.__handler(condition[i], response, "low", session_id).lower()
+    def __low_handler(self, condition, response, session_id):
+        return self.__handler(condition, response, "low", session_id).lower()
 
-    def __up_handler(self, i, condition, response, session_id):
-        return self.__handler(condition[i], response, "up", session_id).upper()
+    def __up_handler(self, condition, response, session_id):
+        return self.__handler(condition, response, "up", session_id).upper()
 
-    def __cap_handler(self, i, condition, response, session_id):
-        return self.__handler(condition[i], response, "cap", session_id).capitalize()
+    def __cap_handler(self, condition, response, session_id):
+        return self.__handler(condition, response, "cap", session_id).capitalize()
 
-    def __call_handler(self, i, condition, response, session_id):
-        return self.call.call(self.__handler(condition[i], response, "call", session_id), session_id=session_id)
+    def __call_handler(self, condition, response, session_id):
+        substitute = self.attr.get("substitute", True)
+        self.attr["substitute"] = False
+        response = self.call.call(self.__handler(condition, response, "call", session_id), session_id=session_id)
+        self.attr["substitute"] = substitute
+        return response
 
-    def __topic_handler(self, i, condition, response, session_id):
-        self.topic[session_id] = self.__handler(condition[i], response, "topic", session_id).strip()
+    def __topic_handler(self, condition, response, session_id):
+        self.topic[session_id] = self.__handler(condition, response, "topic", session_id).strip()
         return ""
 
     @staticmethod
     def __get_start_pos(start, response, exp):
         return start+re.compile(r"([\s\t]*"+exp+r"[\s\t]+)").search(response[start:]).end(1)
 
-    def __map_handler(self, i, condition, response, session_id):
-        start = condition[i]["start"]
-        end = condition[i]["end"]
+    def __map_handler(self, condition, response, session_id):
+        start = condition["start"]
+        end = condition["end"]
         think = False
         if response[start] == "!":
             think = True
             start += 1
         content = self._check_and_evaluate_condition(
                                     response,
-                                    condition[i]["child"],
+                                    condition["child"],
                                     start,
                                     end,
                                     session_id=session_id
@@ -577,9 +587,9 @@ class Chat(object):
             self._memory[session_id][name] = self._substitute(value.strip())
         return self._memory[session_id][name] if not think and name in self._memory[session_id] else ""
 
-    def __eval_handler(self, i, condition, response, session_id):
-        start = condition[i]["start"]
-        end = condition[i]["end"]
+    def __eval_handler(self, condition, response, session_id):
+        start = condition["start"]
+        end = condition["end"]
         think = False
         if response[start] == "!":
             think = True
@@ -588,7 +598,7 @@ class Chat(object):
         self.attr[session_id]["_quote"] = True
         content = self._check_and_evaluate_condition(
                                     response,
-                                    condition[i]["child"],
+                                    condition["child"],
                                     start,
                                     end,
                                     session_id=session_id
@@ -662,6 +672,7 @@ class Chat(object):
         """
         Substitute from Client statement into response
         """
+        # TODO: Need to move re.find to pre processing
         prev = 0
         start_padding = 1+len(extra_symbol)
         final_response = ""
@@ -676,21 +687,17 @@ class Chat(object):
                 pass
             prev = end
         named_group = match.groupdict()
-        if named_group:
-            prev_response = final_response + prev_response[prev:]
-            final_response = ""
-            prev = 0
-            for m in re.finditer(r'%'+extra_symbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prev_response):
-                start = m.start(1)
-                end = m.end(1)
-                final_response += prev_response[prev:start]
-                try:
-                    value = named_group[prev_response[start+start_padding:end]]
-                    if value:
-                        final_response += self._quote(self._substitute(value), session_id)
-                except KeyError:
-                    pass
-                prev = end
+        prev_response = final_response + prev_response[prev:]
+        final_response = ""
+        prev = 0
+        for m in re.finditer(r'%'+extra_symbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prev_response):
+            start = m.start(1)
+            end = m.end(1)
+            final_response += prev_response[prev:start-start_padding]
+            value = named_group.get(prev_response[start:end], "").strip()
+            if value:
+                final_response += self._quote(self._substitute(value), session_id)
+            prev = end
         return final_response + prev_response[prev:]
 
     def _check_and_evaluate_condition(self, response, condition=[], start_index=0, end_index=None,
@@ -710,20 +717,18 @@ class Chat(object):
         while i < len(condition):
             pos = condition[i]["start"]-(1 if condition[i]["action"] in ("map", "eval") else 2)
             final_response += self._check_and_evaluate_condition(response[start_index:pos], session_id=session_id)
-            _quote = self.attr[session_id]["_quote"]
             try:
                 self.attr[session_id]["_quote"] = False
-                temp_response = self.__action_handlers[condition[i]["action"]](i, condition, response, session_id)
+                temp_response = self.__action_handlers[condition[i]["action"]](condition[i], response, session_id)
                 self.attr[session_id]["_quote"] = _quote
                 final_response += self._quote(temp_response, session_id)
             except KeyError:
+                self.attr[session_id]["_quote"] = _quote
                 if condition[i]["action"] == "if":
-                    self.attr[session_id]["_quote"] = _quote
                     response_txt, i = self.__if_handler(i, condition, response, session_id)
                     final_response += response_txt
             start_index = condition[i]["end"]+(1 if condition[i]["action"] in ("map", "eval") else 2)
             i += 1
-        self.attr[session_id]["_quote"] = _quote
         final_response += self._check_and_evaluate_condition(response[start_index:end_index], session_id=session_id)
         return final_response
 
@@ -744,20 +749,24 @@ class Chat(object):
             resp = resp[:-2] + '?'
         return resp
 
-    def __intend_selection(self, text, previous_text, current_topic, session_id):
-        for (pattern, parent, response, learn) in self._pairs[current_topic]["pairs"]:  # check each pattern
-            match = pattern.match(text)
-            if not match:
+    def __intend_selection(self, text, previous_text, current_topic):
+        for (patterns, parents, response, learn) in self._pairs[current_topic]["pairs"]:  # check each pattern
+            for pattern in patterns:
+                match = pattern.match(text)
+                if match:
+                    break
+            else:
                 continue
-            if parent is None:
+            if parents is None:
                 return match, None, response, learn
-            parent_match = parent.match(previous_text)
-            if parent_match:  # did the pattern match?
-                return match, parent_match, response, learn
+            for parent in parents:
+                parent_match = parent.match(previous_text)
+                if parent_match:  # did the pattern match?
+                    return match, parent_match, response, learn
 
     def __response_on_topic(self, text, previous_text, text_correction, current_topic, session_id="general"):
-        match = self.__intend_selection(text, previous_text, current_topic, session_id) or \
-              self.__intend_selection(text_correction, previous_text, current_topic, session_id)
+        match = self.__intend_selection(text, previous_text, current_topic) or \
+              self.__intend_selection(text_correction, previous_text, current_topic)
         if match:
             match, parent_match, response, learn = match
             if learn:
@@ -795,6 +804,8 @@ class Chat(object):
 
         :type text: str
         :param text: The string to be mapped
+        :type session_id: str
+        :param session_id: Current User session when used for multi user scenario
         :rtype: str
         """
         text = self.__normalize(text)
@@ -865,6 +876,17 @@ class Chat(object):
 
     # Hold a conversation with a chatbot
     def converse(self, first_question=None, quit="quit", session_id="general"):
+        """
+        Conversation initiator
+
+        :type first_question: str
+        :param first_question: Start up message
+        :type quit: str
+        :param quit: Conversation termination command
+        :type session_id: str
+        :param session_id: Current User session when used for multi user scenario
+        :rtype: str
+        """
         if first_question:
             self.conversation[session_id].append(first_question)
             print(first_question)

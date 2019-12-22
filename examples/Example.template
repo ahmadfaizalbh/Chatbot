@@ -1,5 +1,5 @@
 {% block %}
-    {% client %}(Do you know about|what is|who is|tell me about)(.*){% endclient %}
-    {% response %}{% call whoIs:%2 %}{% endresponse %}
+    {% client %}(Do you know about|what is|who is|tell me about) (?P<query>.*){% endclient %}
+    {% response %}{% call whoIs: %query %}{% endresponse %}
 {% endblock %}
 

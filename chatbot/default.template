@@ -25,7 +25,7 @@
 {% endblock %}
 
 {% block %}
-    {% client %}Do you remember my name{% endclient %}
+    {% client %}Do you (know|remember) my name{% endclient %}
     {% response %}{% if {name} %}Yes I do {name}{% else %}No,{% chat what is my name %}{% endif %}{% endresponse %}
 {% endblock %}
 

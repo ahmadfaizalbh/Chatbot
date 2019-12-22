@@ -1,4 +1,4 @@
-from chatbot import Chat, reflections, MultiFunctionCall
+from chatbot import Chat, MultiFunctionCall
 import wikipedia
 import os
 import warnings
@@ -19,6 +19,5 @@ def who_is(query, session_id="general"):
 
 call = MultiFunctionCall({"whoIs": who_is})
 first_question = "Hi, how are you?"
-chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Example.template"),
-            reflections, call=call)
+chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Example.template"), call=call)
 chat.converse(first_question)
