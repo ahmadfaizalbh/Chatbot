@@ -1,10 +1,11 @@
-from chatbot import Chat, MultiFunctionCall
+from chatbot import Chat, register_call
 import wikipedia
 import os
 import warnings
 warnings.filterwarnings("ignore")
 
 
+@register_call("whoIs")
 def who_is(query, session_id="general"):
     try:
         return wikipedia.summary(query)
@@ -17,7 +18,7 @@ def who_is(query, session_id="general"):
     return "I don't know about "+query
 
 
-call = MultiFunctionCall({"whoIs": who_is})
 first_question = "Hi, how are you?"
-chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Example.template"), call=call)
+chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Example.template"))
 chat.converse(first_question)
+chat.save_template("x.template")

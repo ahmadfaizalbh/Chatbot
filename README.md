@@ -40,9 +40,11 @@ Thank you for talking with me.
 ## Sample Code (with wikipedia search API integration)
 
 ```python
-from chatbot import Chat,MultiFunctionCall
+from chatbot import Chat, register_call
 import wikipedia
 
+
+@register_call("whoIs")
 def who_is(query,session_id="general"):
     try:
         return wikipedia.summary(query)
@@ -53,10 +55,9 @@ def who_is(query,session_id="general"):
             except Except:
                 pass
     return "I don't know about "+query
-        
-call = MultiFunctionCall({"whoIs":who_is})
+
 first_question="Hi, how are you?"
-Chat("examples/Example.template",call=call).converse(first_question)
+Chat("examples/Example.template").converse(first_question)
 ```
 
 For Detail on how to build Facebook messenger bot checkout  [Facebook Integration.ipynb](https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb)
@@ -137,6 +138,13 @@ It will do a pattern match for statement
 ```
 
 ## Interact with python function
+##### In python 
+```python
+@register_call("functionName")
+def function_name(query, session_id="general"):
+    return "response string"
+```
+##### In template 
 ```
 {% call functionName: value %}
 ```

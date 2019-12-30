@@ -16,7 +16,18 @@ def words(text):
 WORDS = Counter(words(open(path.join(path.dirname(path.abspath(__file__)), 'words.txt'), encoding='utf-8').read()))
 
 
-def p(word, n=sum(WORDS.values())):
+def correction(text, min_word_length=4):
+    """
+    Spell correction based on Most probable spelling correction for word.
+    :param text: str
+    :param min_word_length: word length
+    :return: str
+    """
+    return " ".join(i if len(i) < min_word_length or WORDS[i] else max(candidates(i), key=probability)
+                    for i in text.split())
+
+
+def probability(word, n=sum(WORDS.values())):
     """
     Probability of `word`.
     :param word:
@@ -24,15 +35,6 @@ def p(word, n=sum(WORDS.values())):
     :return: float
     """
     return WORDS[word] / n
-
-
-def correction(word):
-    """
-    Most probable spelling correction for word.
-    :param word: str
-    :return: max probability
-    """
-    return max(candidates(word), key=p)
 
 
 def candidates(word):
