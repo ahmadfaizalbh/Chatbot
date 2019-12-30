@@ -21,4 +21,3 @@ def who_is(query, session_id="general"):
 first_question = "Hi, how are you?"
 chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "Example.template"))
 chat.converse(first_question)
-chat.save_template("x.template")
