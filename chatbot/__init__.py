@@ -821,7 +821,10 @@ class Chat(object):
         :rtype: str
         """
         text = self.__normalize(text)
-        previous_text = self.__normalize(self.conversation[session_id][-2])
+        try:
+          previous_text = self.__normalize(self.conversation[session_id][-2])
+        except IndexError:
+          previous_text = ""
         text_correction = correction(text)
         current_topic = self.topic[session_id]
         current_topic_order = current_topic.split(".")
