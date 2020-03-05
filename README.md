@@ -48,11 +48,11 @@ import wikipedia
 def who_is(query,session_id="general"):
     try:
         return wikipedia.summary(query)
-    except Except:
+    except Exception:
         for new_query in wikipedia.search(query):
             try:
                 return wikipedia.summary(new_query)
-            except Except:
+            except Exception:
                 pass
     return "I don't know about "+query
 
