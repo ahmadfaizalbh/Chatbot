@@ -26,7 +26,7 @@ python setup.py install
 ```
 
 ## Demo
-```python
+```sh
 >>> from chatbot import demo
 >>> demo()
 Hi, how are you?
@@ -40,23 +40,24 @@ Thank you for talking with me.
 ## Sample Code (with wikipedia search API integration)
 
 ```python
-from chatbot import Chat,MultiFunctionCall
+from chatbot import Chat, register_call
 import wikipedia
 
+
+@register_call("whoIs")
 def who_is(query,session_id="general"):
     try:
         return wikipedia.summary(query)
-    except:
+    except Exception:
         for new_query in wikipedia.search(query):
             try:
                 return wikipedia.summary(new_query)
-            except:
+            except Exception:
                 pass
     return "I don't know about "+query
-        
-call = MultiFunctionCall({"whoIs":who_is})
+
 first_question="Hi, how are you?"
-Chat("examples/Example.template",call=call).converse(first_question)
+Chat("examples/Example.template").converse(first_question)
 ```
 
 For Detail on how to build Facebook messenger bot checkout  [Facebook Integration.ipynb](https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb)

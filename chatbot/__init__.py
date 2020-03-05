@@ -3,8 +3,8 @@ import random
 import requests
 import json
 from os import path
-from . import default_substitutions as default
-from .spellcheck import correction, WORDS
+from . import substitutions
+from .spellcheck import correction
 try:
     from urllib import quote
 except ImportError:
@@ -33,6 +33,26 @@ class MultiFunctionCall:
             s = string
         new_string = re.sub(r'([\[\]{}%:])', r"\\\1", s)
         return re.sub(r'\\([\[\]{}%:])', r"\1", func(new_string, session_id=session_id))
+
+
+_function_call = MultiFunctionCall()
+
+
+def register_call(function_name):
+    def wrap(function):
+        if type(function).__name__ != 'function':
+            raise TypeError("function expected found %s" % type(function).__name__)
+        mapper = _function_call.__func__
+        if name in mapper:
+            raise ValueError("function with same name is already registered")
+        mapper[name] = function
+        return function
+
+    if type(function_name).__name__ in ('unicode', 'str'):
+        name = function_name
+        return wrap
+    name = function.__name__
+    return wrap(function_name)
 
 
 class DummyMatch:
@@ -76,9 +96,8 @@ class Topic:
 
 
 class Chat(object):
-    def __init__(self, pairs=(), reflections=default.reflections, call=MultiFunctionCall(),
-                 api={}, normalizer=default.normal,
-                 default_template=path.join(path.dirname(path.abspath(__file__)),  "default.template")):
+    def __init__(self, pairs=(), reflections=substitutions.reflections, call=_function_call,
+                 api={}, normalizer=substitutions.normal, default_template=None, language="en"):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -91,9 +110,13 @@ class Chat(object):
         :param pairs: The patterns and responses
         :type reflections: dict
         :param reflections: A mapping between first and second person expressions
+        :type call: MultiFunctionCall
+        :param call: A mapping between user defined function and template function call name
         :rtype: None
         """
         self.__init__handler()
+        if default_template is None:
+            default_template = path.join(path.dirname(path.abspath(__file__)), "local", language+".template")
         default_pairs = self.__process_template_file(default_template)
         if type(pairs).__name__ in ('unicode', 'str'):
             pairs = self.__process_template_file(pairs)
@@ -272,6 +295,8 @@ class Chat(object):
                     raise ValueError("Response not specified")
                 if type(learn) != dict:
                     raise TypeError("Invalid Type for learn expected dict got '%s'" % type(learn).__name__)
+                if not client:
+                    raise ValueError("Each block should contain at least 1 client regex")
                 self._pairs[topic]["pairs"].insert(0, (self.__build_pattern(client),
                                                        self.__build_pattern(previous),
                                                        tuple((i, self._condition(i)) for i in responses),
@@ -785,19 +810,6 @@ class Chat(object):
             return self.__chose_and_process(self._pairs[current_topic]["defaults"], DummyMatch(text), None, session_id)
         raise ValueError("No match found")
 
-    @staticmethod
-    def __correction(text):
-        """
-        spell correction
-        """
-        new_text = []
-        for i in text.split():
-            if len(i) > 3:
-                new_text.append(i if WORDS[i] else correction(i))
-            else:
-                new_text.append(i)
-        return " ".join(new_text)
-
     def respond(self, text, session_id="general"):
         """
         Generate a response to the user input.
@@ -813,7 +825,7 @@ class Chat(object):
           previous_text = self.__normalize(self.conversation[session_id][-2])
         except IndexError:
           previous_text = ""
-        text_correction = self.__correction(text)
+        text_correction = correction(text)
         current_topic = self.topic[session_id]
         current_topic_order = current_topic.split(".")
         while current_topic_order:
@@ -853,29 +865,37 @@ class Chat(object):
             for topic_name, sub_topic in self.__get_topic_recursion(self._pairs).items():
                 self.__generate_and_write_template(template, self._pairs, topic_name, sub_topic)
 
-    def __generate_and_write_template(self, template, pairs, topic, sub_topics, base_path=None):
+    def __generate_and_write_template(self, template, pairs, topic, sub_topics, base_path=None, padding=""):
         full_path = (base_path+"."+topic) if base_path else topic
         if topic:
-            template.write("{% group "+topic+" %}")
+            template.write(padding + "{% group "+topic+" %}\n")
+            new_padding = padding + "\t"
+        else:
+            new_padding = padding
         for topic_name, sub_topic in sub_topics.items():
-            self.__generate_and_write_template(template, pairs, topic_name, sub_topic, full_path)
-        for (pattern, parent, response, learn) in pairs[full_path]["pairs"]:
-            template.write("{% block %}")
-            template.write("{% client %}"+pattern.pattern+"{% endclient %}")
-            if parent is not None:
-                template.write("{% prev %}"+parent.pattern+"{% endprev %}")
+            self.__generate_and_write_template(template, pairs, topic_name, sub_topic, full_path,
+                                               padding=new_padding+"\t")
+        for (patterns, parents, response, learn) in pairs[full_path]["pairs"]:
+            template.write(new_padding + "{% block %}\n")
+            if parents is None:
+                parents = []
+            for parent in parents:
+                template.write(new_padding + "\t{% prev %}"+parent.pattern+"{% endprev %}\n")
+            for pattern in patterns:
+                template.write(new_padding + "\t{% client %}"+pattern.pattern+"{% endclient %}\n")
             for res in response:
-                template.write("{% response %}"+res[0]+"{% response %}")
+                template.write(new_padding + "\t{% response %}"+res[0]+"{% response %}\n")
             if learn:
-                template.write("{% learn %}")
+                template.write(new_padding + "\t{% learn %}\n")
                 for topic_name, sub_topic in self.__get_topic_recursion(learn).items():
-                    self.__generate_and_write_template(template, learn, topic_name, sub_topic)
-                template.write("{% endlearn %}")
-            template.write("{% endblock %}")
+                    self.__generate_and_write_template(template, learn, topic_name, sub_topic,
+                                                       padding=new_padding+"\t")
+                template.write(new_padding + "\t{% endlearn %}\n")
+            template.write(new_padding + "{% endblock %}\n")
         for res in pairs[topic]["defaults"]:
-            template.write("{% response %}"+res[0]+"{% response %}")
+            template.write(new_padding + "{% response %}"+res[0]+"{% response %}\n")
         if topic:
-            template.write("{% endgroup %}")
+            template.write(padding + "{% endgroup %}\n")
 
     # Hold a conversation with a chatbot
     def converse(self, first_question=None, quit="quit", session_id="general"):
