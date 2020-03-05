@@ -4,7 +4,7 @@ from setuptools import setup
 
 setup(
     name='chatbotAI',
-    version='0.2.1.0',
+    version='0.2.1.1',
     author="Ahmad Faizal B H",
     author_email="ahmadfaizalbh726@gmail.com",
     url="https://github.com/ahmadfaizalbh/Chatbot",
@@ -17,7 +17,7 @@ setup(
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
     package_dir={'chatbot': 'chatbot', 'chatbot.spellcheck': 'chatbot/spellcheck'},
     include_package_data=True,
-    package_data={"chatbot":  ["default.template", "spellcheck/words.txt"]},
+    package_data={"chatbot":  ["local/en.template", "local/pt-br.template", "spellcheck/words.txt"]},
     install_requires=[
           'requests',
       ]
