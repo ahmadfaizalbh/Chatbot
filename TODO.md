@@ -1,0 +1,12 @@
+# To do
+- [x] Callback registration 
+- [x] Named group support 
+- [x] Multiple chat message Regex per intend block support 
+- [x] Multiple previous message Ragex per intend block support 
+- [x] language switch support 
+- [ ] Mapping table for other languages (French, German, Chinese, Japnese, Hindi, Arabic, etc.)
+- [ ] Base template for other languages (French, German, Chinese, Japnese, Hindi, Arabic, etc.)
+- [ ] Unit Tests
+- [ ] Voice cammand support
+- [ ] Code Embedded Templates (macros) support 
+- [ ] Non python callback function registration support (integration of java, c#, nodejs, Ruby, C/C++, etc.)
