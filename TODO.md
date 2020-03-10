@@ -3,7 +3,11 @@
 - [x] Named group support 
 - [x] Multiple chat message Regex per intend block support 
 - [x] Multiple previous message Ragex per intend block support 
-- [x] language switch support 
+- [x] Language switch support
+- [ ] Desktop UI
+- [ ] Rich Text Respose Support in template
+- [ ] Response Card Support in templates
+- [ ] Support Image and Vidio in response 
 - [ ] Mapping table for other languages (French, German, Chinese, Japnese, Hindi, Arabic, etc.)
 - [ ] Base template for other languages (French, German, Chinese, Japnese, Hindi, Arabic, etc.)
 - [ ] Unit Tests
