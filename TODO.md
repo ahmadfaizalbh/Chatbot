@@ -13,14 +13,30 @@
 - [x] Named group support 
 - [x] Multiple chat message Regex per intend block support 
 - [x] Multiple previous message Ragex per intend block support 
-- [x] Language switch support
+- [x] Language switch support (localization)
 - [ ] Desktop UI
 - [x] [Web UI](https://github.com/ahmadfaizalbh/WebBot)
 - [ ] Rich Text Respose Support in template
 - [ ] Response Card Support in templates
 - [ ] Support Image and Vidio in response 
-- [ ] Mapping table for other languages (French, German, Chinese, Japnese, Hindi, Arabic, etc.)
-- [ ] Base template for other languages (French, German, Chinese, Japnese, Hindi, Arabic, etc.)
+- [ ] Mapping table (normal and reflections) language specific (localization)
+  - [x] English
+  - [ ] Portuguese (Brazil)
+  - [ ] FrenchGerman
+  - [ ] Chinese
+  - [ ] Japnese
+  - [ ] Hindi
+  - [ ] Arabic
+  - [ ] others
+- [ ] Base (default) template language specific (localization)
+  - [x] English
+  - [x] Portuguese (Brazil)
+  - [ ] FrenchGerman
+  - [ ] Chinese
+  - [ ] Japnese
+  - [ ] Hindi
+  - [ ] Arabic
+  - [ ] others
 - [ ] Unit Tests
 - [ ] Voice cammand support
 - [ ] Code Embedded Templates (macros) support 
