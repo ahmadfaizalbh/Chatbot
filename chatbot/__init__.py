@@ -5,6 +5,7 @@ import json
 from os import path
 from . import substitutions
 from .spellcheck import correction
+
 try:
     from urllib import quote
 except ImportError:
@@ -14,8 +15,8 @@ try:
     input_reader = raw_input
 except NameError:
     input_reader = input
-    
-    
+
+
 class MultiFunctionCall:
 
     def __init__(self, func={}):
