@@ -10,7 +10,12 @@ try:
 except ImportError:
     from urllib.parse import quote
 
-
+try:
+    input_reader = raw_input
+except NameError:
+    input_reader = input
+    
+    
 class MultiFunctionCall:
 
     def __init__(self, func={}):
@@ -897,6 +902,20 @@ class Chat(object):
         if topic:
             template.write(padding + "{% endgroup %}\n")
 
+    def say(self, message, session_id="general"):
+        """
+        say is a messagehandler takes a client message and returns response 
+        :type message: str
+        :param message: Client message
+        :type session_id: str
+        :param session_id: Current User session when used for multi user scenario
+        :rtype: str
+        """
+        self.conversation[session_id].append(message)
+        respnse = self.respond(message.rstrip("!."), session_id=session_id)
+        self.conversation[session_id].append(respnse)
+        return response
+
     # Hold a conversation with a chatbot
     def converse(self, first_question=None, quit="quit", session_id="general"):
         """
@@ -913,10 +932,6 @@ class Chat(object):
         if first_question:
             self.conversation[session_id].append(first_question)
             print(first_question)
-        try:
-            input_reader = raw_input
-        except NameError:
-            input_reader = input
         input_sentence = ""
         while input_sentence != quit:
             input_sentence = quit
@@ -925,11 +940,7 @@ class Chat(object):
             except EOFError:
                 print(input_sentence)
             if input_sentence:
-                self.conversation[session_id].append(input_sentence)
-                while input_sentence[-1] in "!.":
-                    input_sentence = input_sentence[:-1]
-                self.conversation[session_id].append(self.respond(input_sentence, session_id=session_id))
-                print(self.conversation[session_id][-1])
+                print(self.say(input_sentence))
 
 
 def demo():
