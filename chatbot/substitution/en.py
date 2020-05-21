@@ -1,4 +1,5 @@
-"""This file contains the default (English) substitutions for the
+"""
+This file contains the default (English) substitutions for the
 PyAIML kernel.  These substitutions may be overridden by using the
 Kernel.loadSubs(filename) method.  The filename specified should refer
 to a Windows-style INI file with the following format:

@@ -3,8 +3,8 @@ import random
 import requests
 import json
 from os import path
-from . import substitutions
-from .spellcheck import correction
+from .substitution import Substitution
+from .spellcheck import SpellChecker
 
 try:
     from urllib import quote
@@ -72,7 +72,7 @@ class DummyMatch:
         raise IndexError("no such group")
 
     @staticmethod
-    def groupdict(*arg, **karg):
+    def groupdict(*arg, **kwargs):
         return {}
 
 
@@ -102,8 +102,8 @@ class Topic:
 
 
 class Chat(object):
-    def __init__(self, pairs=(), reflections=substitutions.reflections, call=_function_call,
-                 api={}, normalizer=substitutions.normal, default_template=None, language="en"):
+    def __init__(self, pairs=(), reflections=None, call=_function_call,
+                 api={}, normalizer=None, default_template=None, language="en"):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -121,6 +121,8 @@ class Chat(object):
         :rtype: None
         """
         self.__init__handler()
+        self.spell_checker = SpellChecker(language)
+        self.substitution = Substitution(language)
         if default_template is None:
             default_template = path.join(path.dirname(path.abspath(__file__)), "local", language+".template")
         default_pairs = self.__process_template_file(default_template)
@@ -131,14 +133,15 @@ class Chat(object):
             pairs = {'': {"pairs": pairs, "defaults": []}}
         elif '' not in pairs:
             raise KeyError("Default topic missing")
-        self._normalizer = dict(normalizer)
+        normalizer = dict(normalizer) if normalizer else self.substitution.normal
+        self._normalizer = {}
         for key in normalizer:
             self._normalizer[key.lower()] = normalizer[key]
         self._normalizer_regex = self._compile_reflections(normalizer)
         self.__process_learn(default_pairs)
         self.__process_learn(pairs)
-        self._reflections = reflections
-        self._regex = self._compile_reflections(reflections)
+        self._reflections = reflections if reflections else self.substitution.reflections
+        self._regex = self._compile_reflections(self._reflections)
         self._memory = {"general": {}}
         self.conversation = {"general": []}
         self.session_id = "general"
@@ -831,7 +834,7 @@ class Chat(object):
           previous_text = self.__normalize(self.conversation[session_id][-2])
         except IndexError:
           previous_text = ""
-        text_correction = correction(text)
+        text_correction = self.spell_checker.correction(text)
         current_topic = self.topic[session_id]
         current_topic_order = current_topic.split(".")
         while current_topic_order:
@@ -913,11 +916,11 @@ class Chat(object):
         :rtype: str
         """
         self.conversation[session_id].append(message)
-        respnse = self.respond(message.rstrip("!."), session_id=session_id)
-        self.conversation[session_id].append(respnse)
+        response = self.respond(message.rstrip("!."), session_id=session_id)
+        self.conversation[session_id].append(response)
         return response
 
-    # Hold a conversation with a chatbot
+    # Hold a conversation with a chat bot
     def converse(self, first_question=None, quit="quit", session_id="general"):
         """
         Conversation initiator
@@ -944,6 +947,5 @@ class Chat(object):
                 print(self.say(input_sentence))
 
 
-def demo():
-    first_question = "Hi, how are you?"
-    Chat().converse(first_question)
+def demo(first_question="Hi, how are you?", **kwargs):
+    Chat(**kwargs).converse(first_question)
