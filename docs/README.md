@@ -5,7 +5,7 @@ allows easy integration of REST API's and python function calls which
 makes it unique and more powerful in functionality. This AI provides
 numerous features like learn, memory, conditional switch, topic-based
 conversation handling, etc.
-
+<!--- {% raw %} -->
 
 ![Demo](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo.gif)
 ![Clothing assistance](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/clothing.gif)
@@ -254,3 +254,4 @@ you can have any number of key value pair and all key value pair will override d
 
 ![Chatbot AI flow Diagram](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/ChatBot%20AI.png)
 
+<!--- {% endraw %} -->
