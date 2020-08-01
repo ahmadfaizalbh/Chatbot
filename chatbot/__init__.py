@@ -44,7 +44,7 @@ class MultiFunctionCall:
 _function_call = MultiFunctionCall()
 
 
-def register_call(function_name):
+def register_call(function_name=None):
     def wrap(function):
         if type(function).__name__ != 'function':
             raise TypeError("function expected found %s" % type(function).__name__)
@@ -54,10 +54,14 @@ def register_call(function_name):
         mapper[name] = function
         return function
 
+    if function_name is None:
+        return register_call
     if type(function_name).__name__ in ('unicode', 'str'):
         name = function_name
         return wrap
-    name = function.__name__
+    if type(function_name).__name__ != 'function':
+        raise TypeError("String is expected for function name found %s" % type(function).__name__)
+    name = function_name.__name__
     return wrap(function_name)
 
 

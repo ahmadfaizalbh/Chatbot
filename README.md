@@ -102,6 +102,7 @@ In think mode
 ```
 
 ## Get matched group
+for grouping in regex refer [Python regular expression docs](https://docs.python.org/3/howto/regex.html#non-capturing-and-named-groups)
 #### Get N<sup>th</sup> matched group of client pattern
 ```
 %N
@@ -110,14 +111,31 @@ Example to get first matched
 ```
 %1
 ```
+#### Get matching named group of client pattern
+```
+%Client_pattern_group_name
+```
+Example to get matching named group `person`
+```
+%person
+```
 
-#### Get N<sup>th</sup> matched group of bots pattern
+#### Get N<sup>th</sup> matched group of bots message pattern
 ```
 %!N
 ```
 Example to get first matched
 ```
 %!1
+```
+
+#### Get matching named group of bots message pattern
+```
+%!Bot_pattern_group_name
+```
+Example to get matching named group `region`
+```
+%!region
 ```
 
 ## Recursion
