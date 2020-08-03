@@ -19,7 +19,7 @@ setup(
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
     package_dir={'chatbot': 'chatbot',
                  'chatbot.spellcheck': 'chatbot/spellcheck',
-                 'chatbot.substitution': 'chatbot.substitution'
+                 'chatbot.substitution': 'chatbot/substitution'
                  },
     include_package_data=True,
     package_data={"chatbot":  ["local/en/default.template",
