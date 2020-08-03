@@ -1,21 +1,22 @@
-"""
-Spelling Corrector in Python 3; see http://norvig.com/spell-correct.html
-
-Copyright (c) 2007-2016 Peter Norvig
-MIT license: www.opensource.org/licenses/mit-license.php
-"""
-
 import re
 from os import path
 from collections import Counter
+from warnings import warn
 
 
 class SpellChecker:
 
-    def __init__(self, language='en'):
-        self.WORDS = Counter(self.words(open(path.join(path.dirname(path.abspath(__file__)),
-                                                       language+".txt"), encoding='utf-8').read()))
+    def __init__(self, local_path, language='en'):
+        try:
+            self.WORDS = Counter(self.words(open(path.join(
+                local_path, language, "words.txt"), encoding='utf-8').read()))
+        except FileNotFoundError:
+            warn("words.txt for language `{}` not found in `{}`".format(language, local_path),
+                 ResourceWarning)
+            self.WORDS = Counter()
         self.total_word_count = sum(self.WORDS.values())
+        if self.total_word_count == 0:
+            self.total_word_count = 1
 
     @staticmethod
     def words(text):

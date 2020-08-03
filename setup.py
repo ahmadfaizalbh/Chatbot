@@ -1,10 +1,12 @@
 #!/usr/bin/env python
-# from distutils.core import setup
+
 from setuptools import setup
+
+version = __import__('chatbot').__version__
 
 setup(
     name='chatbotAI',
-    version='0.2.1.2',
+    version=version,
     author="Ahmad Faizal B H",
     author_email="ahmadfaizalbh726@gmail.com",
     url="https://github.com/ahmadfaizalbh/Chatbot",
@@ -17,7 +19,10 @@ setup(
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
     package_dir={'chatbot': 'chatbot', 'chatbot.spellcheck': 'chatbot/spellcheck'},
     include_package_data=True,
-    package_data={"chatbot":  ["local/en.template", "local/pt-br.template", "spellcheck/words.txt"]},
+    package_data={"chatbot":  ["local/en/default.template",
+                               "local/en/words.txt",
+                               "local/en/substitutions.json",
+                               "local/pt-br/default.template"]},
     install_requires=[
           'requests',
       ]
