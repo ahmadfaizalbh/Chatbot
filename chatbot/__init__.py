@@ -5,6 +5,7 @@ import json
 from os import path
 from .substitution import Substitution
 from .spellcheck import SpellChecker
+from . import version
 
 try:
     from urllib import quote
@@ -15,6 +16,9 @@ try:
     input_reader = raw_input
 except NameError:
     input_reader = input
+
+
+__version__ = '{}.{}.{}.{}'.format(version.MAJOR, version.MINOR, version.MICRO, version.PATCH)
 
 
 class MultiFunctionCall:
@@ -60,7 +64,8 @@ def register_call(function_name=None):
         name = function_name
         return wrap
     if type(function_name).__name__ != 'function':
-        raise TypeError("String is expected for function name found %s" % type(function).__name__)
+        raise TypeError("String is expected for function name found {}".format(
+            type(function_name).__name__))
     name = function_name.__name__
     return wrap(function_name)
 
@@ -107,7 +112,7 @@ class Topic:
 
 class Chat(object):
     def __init__(self, pairs=(), reflections=None, call=_function_call,
-                 api={}, normalizer=None, default_template=None, language="en"):
+                 api={}, normalizer=None, default_template=None, language="en", local_path=None):
         """
         Initialize the chatbot.  Pairs is a list of patterns and responses.  Each
         pattern is a regular expression matching the user's statement or question,
@@ -125,10 +130,14 @@ class Chat(object):
         :rtype: None
         """
         self.__init__handler()
-        self.spell_checker = SpellChecker(language)
-        self.substitution = Substitution(language)
+        if local_path is None:
+            self.local_path = path.join(path.dirname(path.abspath(__file__)), "local")
+        else:
+            self.local_path = local_path
+        self.spell_checker = SpellChecker(self.local_path, language)
+        self.substitution = Substitution(self.local_path, language)
         if default_template is None:
-            default_template = path.join(path.dirname(path.abspath(__file__)), "local", language+".template")
+            default_template = path.join(self.local_path, language, "default.template")
         default_pairs = self.__process_template_file(default_template)
         if type(pairs).__name__ in ('unicode', 'str'):
             pairs = self.__process_template_file(pairs)
@@ -835,9 +844,9 @@ class Chat(object):
         """
         text = self.__normalize(text)
         try:
-          previous_text = self.__normalize(self.conversation[session_id][-2])
+            previous_text = self.__normalize(self.conversation[session_id][-2])
         except IndexError:
-          previous_text = ""
+            previous_text = ""
         text_correction = self.spell_checker.correction(text)
         current_topic = self.topic[session_id]
         current_topic_order = current_topic.split(".")
@@ -912,7 +921,7 @@ class Chat(object):
 
     def say(self, message, session_id="general"):
         """
-        say is a messagehandler takes a client message and returns response 
+        say is a messagehandler takes a client message and returns response
         :type message: str
         :param message: Client message
         :type session_id: str

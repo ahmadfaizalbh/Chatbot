@@ -1,21 +1,25 @@
-from importlib import import_module
-import warnings
+from warnings import warn
+from os import path
+import json
 
 
 class Substitution:
-    def __init__(self, language="en"):
+    def __init__(self, local_path, language="en"):
+        file_path = path.join(local_path, language, "substitutions.json")
         try:
-            self.substitutions = import_module("."+language, package="chatbot.substitution")
-        except ModuleNotFoundError:
-            warnings.warn("substitution for language `{}` not Implemented".format(language),
-                          ImportWarning)
-            self.substitutions = import_module(".en", package="chatbot.substitution")
+            with open(file_path) as f:
+                self.substitutions = json.load(f)
+        except FileNotFoundError:
+            warn("substitution for language `{}` not Implemented".format(language),
+                 ResourceWarning)
+            self.substitutions = {}
+        if type(self.substitutions) != dict:
+            raise TypeError("Expected dictionary `{}` in but found {}".format(
+                file_path, type(self.substitutions)))
 
     def __getattr__(self, item):
         try:
-            return getattr(self.substitutions, item)
-        except AttributeError:
-            warnings.warn("substitution doesnt have {}".format(item),
-                          Warning)
+            return self.substitutions[item]
+        except KeyError:
+            warn("substitutions does not have {}".format(item), Warning)
         return {}
-
