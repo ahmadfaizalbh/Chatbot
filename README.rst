@@ -176,6 +176,7 @@ Get matching named group of bots message pattern
     %!Bot_pattern_group_name
 
 Example to get matching named group ``region``
+
 .. code:: sh
 
     %!region
