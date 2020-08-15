@@ -25,8 +25,22 @@ install from github:
     cd Chatbot
     python setup.py install
 
+Demo
+----
+.. code:: sh
+
+    >>> from chatbot import demo
+    >>> demo()
+    Hi, how are you?
+    > i'm fine
+    Nice to know that you are fine  
+    > quit
+    Thank you for talking with me.
+    >>>
+
+
 Sample Code (with wikipedia search API integration)
----------------------------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code:: python
 
@@ -55,7 +69,7 @@ For Jupyter notebook Chatbot checkout `Infobot built using
 NLTK-Chatbot <https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/How%20to%20build%20a%20bot.ipynb>`__
 
 Sample Apps
-^^^^^^^^^^^
+"""""""""""
 
 1. A sample facebook messenger bot built using
    `messengerbot <https://github.com/geeknam/messengerbot/pulls>`__,
@@ -89,10 +103,10 @@ List of feature supported in bot template
 --------------
 
 Memory
-------
+^^^^^^
 
 Set Memory
-^^^^^^^^^^
+""""""""""
 
 .. code:: sh
 
@@ -105,17 +119,18 @@ In think mode
     {! variable : value }
 
 Get Memory
-^^^^^^^^^^
+""""""""""
 
 .. code:: sh
 
     { variable }
 
 Get matched group
------------------
+^^^^^^^^^^^^^^^^^
+for grouping in regex refer `Python regular expression docs <https://docs.python.org/3/howto/regex.html#non-capturing-and-named-groups?>`__
 
-Get Nth matched group of client pattern
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Get N :superscript:`th` matched group of client pattern
+"""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: sh
 
@@ -127,8 +142,21 @@ Example to get first matched
 
     %1
 
-Get Nth matched group of bots pattern
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Get matching named group of client pattern
+""""""""""""""""""""""""""""""""""""""""""
+
+.. code:: sh
+
+    %Client_pattern_group_name
+
+Example to get matching named group ``person``
+
+.. code:: sh
+
+    %person
+
+Get N :superscript:`th` matched group of bots pattern
+"""""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: sh
 
@@ -140,8 +168,20 @@ Example to get first matched
 
     %!1
 
+Get matching named group of bots message pattern
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. code:: sh
+
+    %!Bot_pattern_group_name
+
+Example to get matching named group ``region``
+.. code:: sh
+
+    %!region
+
 Recursion
----------
+^^^^^^^^^
 
 Get response as if client said this new statement
 
@@ -152,7 +192,7 @@ Get response as if client said this new statement
 It will do a pattern match for statement
 
 Condition
----------
+^^^^^^^^^
 
 ::
 
@@ -165,14 +205,14 @@ Condition
     {% endif %}
 
 Change Topic
-------------
+^^^^^^^^^^^^
 
 .. code:: sh
 
     {% topic TopicName %}
 
 Interact with python function
------------------------------
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 
 In python
@@ -190,10 +230,10 @@ In Template
     {% call functionName: value %}
 
 REST API integration
---------------------
+^^^^^^^^^^^^^^^^^^^^
 
 In API.json file
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 .. code:: sh
 
@@ -238,14 +278,10 @@ In API.json file
         ...
     }
 
-*If authentication is required only then ``auth`` method is needed.The
-``data`` and ``params`` defined in pi.json file acts as defult values
-and all key value pair defined in template file overrides the default
-value.\ ``value_getter`` consistes of list of keys in order using which
-info from json will be collected.*
+*If authentication is required only then* ``auth`` *method is needed. The* ``data`` *and* ``params`` *defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.* ``value_getter`` *consistes of list of keys in order using which info from json will be collected.*
 
 In Template file
-^^^^^^^^^^^^^^^^
+""""""""""""""""
 
 .. code:: sh
 
@@ -257,7 +293,7 @@ override data or params depending on ``method``, if ``method`` is
 overrides ``params``.
 
 Topic based group
------------------
+^^^^^^^^^^^^^^^^^
 
 .. code:: sh
 
@@ -270,7 +306,7 @@ Topic based group
     {% endgroup %}
 
 Learn
------
+^^^^^
 
 .. code:: sh
 
@@ -286,28 +322,28 @@ Learn
     {% endlearn %}
 
 To upper case
--------------
+^^^^^^^^^^^^^
 
 .. code:: sh
 
     {% up string %}
 
 To lower case
--------------
+^^^^^^^^^^^^^
 
 .. code:: sh
 
     {% low string %}
 
 Capitalize
-----------
+^^^^^^^^^^
 
 .. code:: sh
 
     {% cap string %}
 
 Previous
---------
+^^^^^^^^
 
 .. code:: sh
 
