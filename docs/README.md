@@ -45,7 +45,7 @@ import wikipedia
 
 
 @register_call("whoIs")
-def who_is(query,session_id="general"):
+def who_is(session, query):
     try:
         return wikipedia.summary(query)
     except Exception:
@@ -141,7 +141,7 @@ It will do a pattern match for statement
 ##### In python 
 ```python
 @register_call("functionName")
-def function_name(query, session_id="general"):
+def function_name(session, query):
     return "response string"
 ```
 ##### In template 

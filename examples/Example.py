@@ -6,7 +6,7 @@ warnings.filterwarnings("ignore")
 
 
 @register_call("whoIs")
-def who_is(query, session_id="general"):
+def who_is(session, query):
     try:
         return wikipedia.summary(query)
     except Exception:
