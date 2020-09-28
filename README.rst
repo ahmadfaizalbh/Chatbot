@@ -1,8 +1,8 @@
 Chatbot
 =======
 
-Python chatbot AI that helps in creating a python based chatbot with
-minimal coding. This provides both bots AI and chat handler and also
+Python chatbot AI that helps in creating a Python based chatbot with
+minimum coding. This provides both AI bots and chat handler and also
 allows easy integration of REST API's and python function calls which
 makes it unique and more powerful in functionality. This AI provides
 numerous features like learn, memory, conditional switch, topic-based
@@ -11,13 +11,13 @@ conversation handling, etc.
 Installation
 ------------
 
-Install from PyPI:
+Installing from PyPI:
 
 .. code:: sh
 
     pip install chatbotAI
 
-install from github:
+installing from github:
 
 .. code:: sh
 
@@ -62,7 +62,7 @@ Sample Code (with wikipedia search API integration)
     first_question="Hi, how are you?"
     Chat("examples/Example.template").converse(first_question)
 
-For Detail on how to build Facebook messenger bot checkout `Facebook
+For details on how to build Facebook messenger bot checkout `Facebook
 Integration.ipynb <https://github.com/ahmadfaizalbh/Meetup-Resources/blob/master/Facebook%20Integration.ipynb>`__
 
 For Jupyter notebook Chatbot checkout `Infobot built using
@@ -83,7 +83,7 @@ Sample Apps
    `NLTK-Chatbot <#chatbot>`__ is available here `Micosoft
    Chatbot <https://github.com/ahmadfaizalbh/Microsoft-chatbot/>`__
 
-List of feature supported in bot template
+List of features supported in bot template
 -----------------------------------------
 
 1.  `Memory <#memory>`__
@@ -142,7 +142,7 @@ Example to get first matched
 
     %1
 
-Get matching named group of client pattern
+Get matching named group of client's patterns
 """"""""""""""""""""""""""""""""""""""""""
 
 .. code:: sh
@@ -168,7 +168,7 @@ Example to get first matched
 
     %!1
 
-Get matching named group of bots message pattern
+Get matching named group of bot's message patterns
 """"""""""""""""""""""""""""""""""""""""""""""""
 
 .. code:: sh
