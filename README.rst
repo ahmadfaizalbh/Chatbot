@@ -17,7 +17,7 @@ Installing from PyPI:
 
     pip install chatbotAI
 
-installing from github:
+Installing from github:
 
 .. code:: sh
 
