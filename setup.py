@@ -2,8 +2,16 @@
 
 from setuptools import setup
 
-version = __import__('chatbot').__version__
-
+chatbot = __import__('chatbot')
+version = chatbot.__version__
+LANGUAGE_SUPPORT = chatbot.LANGUAGE_SUPPORT
+package_data = []
+for language in LANGUAGE_SUPPORT:
+    package_data.extend([
+        "local/%s/default.template" % language,
+        "local/%s/words.txt" % language,
+        "local/%s/substitutions.json" % language
+    ])
 setup(
     name='chatbotAI',
     version=version,
@@ -23,10 +31,7 @@ setup(
         'chatbot.substitution': 'chatbot/substitution'
     },
     include_package_data=True,
-    package_data={"chatbot":  ["local/en/default.template",
-                               "local/en/words.txt",
-                               "local/en/substitutions.json",
-                               "local/pt-br/default.template"]},
+    package_data={"chatbot":  package_data},
     install_requires=[
           'requests',
       ]

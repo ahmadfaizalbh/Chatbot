@@ -1,32 +1,27 @@
 {
   "gender": {
     "er": "sie",
-    "ihm": "ihr",
     "sein": "ihr",
 	"seine": "ihre",
 	"seins": "ihrs",
     "ihm": "ihr",
     "sie": "er",
-    "ihr": "ihm",
 	"ihre": "sein",
     "ihrs": "seins",
     "ihr": "ihm"
   },
   "person": {
     "ich": "er",
-    "mir": "ihm",
     "meins": "seins",
 	"mein": "sein",
 	"meine": "seine",
     "mir": "ihm",
     "er": "ich",
-    "ihm": "mir",
     "sein": "mein",
 	"seins": "meins",
 	"seine": "meine",
     "ihm": "mir",
     "sie": "ich",
-    "ihr": "mir",
     "ihrs": "meins",
 	"ihre": "meine",
     "ihr": "mir"
@@ -38,7 +33,6 @@
     "meine": "deine",
 	"meins": "deins",
     "mir": "dir",
-    "dir": "mich",
     "dein": "mein",
     "deine": "meine",
 	"deins": "meins",
@@ -58,10 +52,9 @@
 	"ich's": "ich es",
 	"du's": "du es",
 	"er's": "er es",
-	"sie's": "sie es",
 	"wir's": "wir es",
 	"ihr's": "ihr es",
-	"sie's": "sie es",
+	"sie's": "sie es"
   },
   "reflections": {
     "ich bin": "du bist",
