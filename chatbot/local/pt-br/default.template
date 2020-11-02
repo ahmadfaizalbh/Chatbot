@@ -51,253 +51,251 @@
 {% endblock %}
 
 {% block %}
-    {% client %}Why can not I (.*){% endclient %}
-    {% response %}Do you think you should be able to %1?{% endresponse %}
-    {% response %}If you could %1, what would you do?{% endresponse %}
-    {% response %}I do not know -- why can not you %1?{% endresponse %}
-    {% response %}Have you really tried?{% endresponse %}
+    {% client %}Porque eu não posso (.*){% endclient %}
+    {% response %}Você acha que deveria ser capaz de %1?{% endresponse %}
+    {% response %}Se você pudesse %1, o que você faria?{% endresponse %}
+    {% response %}eu não sei -- Por que você não pode %1?{% endresponse %}
+    {% response %}Você realmente tentou?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I can not (.*){% endclient %}
-    {% response %}How do you know you can not %1?{% endresponse %}
-    {% response %}Perhaps you could %1 if you tried.{% endresponse %}
-    {% response %}What would it take for you to %1?{% endresponse %}
+    {% client %}Eu não posso (.*){% endclient %}
+    {% response %}Como você sabe que não pode %1?{% endresponse %}
+    {% response %}Talvez você pudesse %1 se você tentasse.{% endresponse %}
+    {% response %}O que seria necessário para você %1?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I am (.*){% endclient %}
-    {% response %}Did you come to me because you are %1?{% endresponse %}
-    {% response %}How long have you been %1?{% endresponse %}
-    {% response %}How do you feel about being %1?{% endresponse %}
-    {% response %}How does being %1 make you feel?{% endresponse %}
-    {% response %}Do you enjoy being %1?{% endresponse %}
-    {% response %}Why do you tell me you are %1?{% endresponse %}
-    {% response %}Why do you think you are %1?{% endresponse %}
+    {% client %}.*(eu sou|estou) (.*){% endclient %}
+    {% response %}Você veio a mim porque você é %2?{% endresponse %}
+    {% response %}Há quanto tempo você está %2?{% endresponse %}
+    {% response %}Como você se sente por estar %2?{% endresponse %}
+    {% response %}Por que você me diz que está %2?{% endresponse %}
+    {% response %}Por que você acha que está %2?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Are you (.*){% endclient %}
-    {% response %}Why does it matter whether I am %1?{% endresponse %}
-    {% response %}Would you prefer it if I were not %1?{% endresponse %}
-    {% response %}Perhaps you believe I am %1.{% endresponse %}
-    {% response %}I may be %1 -- what do you think?{% endresponse %}
+    {% client %}Você está (.*){% endclient %}
+    {% response %}Por que importa se eu estou %1?{% endresponse %}
+    {% response %}Você preferiria se eu não fosse %1?{% endresponse %}
+    {% response %}Talvez você acredite que eu sou %1.{% endresponse %}
+    {% response %}Posso ser %1 - o que você acha?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}What (.*){% endclient %}
-    {% response %}Why do you ask?{% endresponse %}
-    {% response %}How would an answer to that help you?{% endresponse %}
-    {% response %}What do you think?{% endresponse %}
+    {% client %}(O que é|Qual|Que).*{% endclient %}
+    {% response %}Por que você pergunta?{% endresponse %}
+    {% response %}Como uma resposta a isso o ajudaria?{% endresponse %}
+    {% response %}O que você acha?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}How (.*){% endclient %}
-    {% response %}How do you suppose?{% endresponse %}
-    {% response %}Perhaps you can answer your own question.{% endresponse %}
-    {% response %}What is it you are really asking?{% endresponse %}
+    {% client %}(Como|E se) (.*){% endclient %}
+    {% response %}Como você acha?{% endresponse %}
+    {% response %}Talvez você possa responder sua própria pergunta.{% endresponse %}
+    {% response %}O que você está realmente perguntando?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Because (.*){% endclient %}
-    {% response %}Is that the real reason?{% endresponse %}
-    {% response %}What other reasons come to mind?{% endresponse %}
-    {% response %}Does that reason apply to anything else?{% endresponse %}
-    {% response %}If %1, what else must be true?{% endresponse %}
+    {% client %}.*Porque (.*){% endclient %}
+    {% response %}Esse é o verdadeiro motivo?{% endresponse %}
+    {% response %}Que outras razões vêm à mente?{% endresponse %}
+    {% response %}Esse motivo se aplica a alguma outra coisa?{% endresponse %}
+    {% response %}Se %1, o que mais deve ser verdade?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}(.*) sorry (.*){% endclient %}
-    {% response %}There are many times when no apology is needed.{% endresponse %}
-    {% response %}What feelings do you have when you apologize?{% endresponse %}
+    {% client %}(.*) (Desculpe|sente muito) (.*){% endclient %}
+    {% response %}Muitas vezes não há necessidade de desculpas.{% endresponse %}
+    {% response %}Que sentimentos você tem quando pede desculpas?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Hello(.*){% endclient %}
-    {% response %}Hello... I am glad you could drop by today.{% endresponse %}
-    {% response %}Hi there... how are you today?{% endresponse %}
-    {% response %}Hello, how are you feeling today?{% endresponse %}
+    {% client %}Olá (.*){% endclient %}
+    {% response %}Olá... Que bom que você pôde passar por aqui.{% endresponse %}
+    {% response %}Olá ... como você está hoje?{% endresponse %}
+    {% response %}Olá, como você está se sentindo hoje?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I think (.*){% endclient %}
+    {% client %}eu acho que (.*){% endclient %}
     {% response %}Do you doubt %1?{% endresponse %}
     {% response %}Do you really think so?{% endresponse %}
     {% response %}But you are not sure %1?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}(.*) friend (.*){% endclient %}
-    {% response %}Tell me more about your friends.{% endresponse %}
-    {% response %}When you think of a friend, what comes to mind?{% endresponse %}
-    {% response %}Why do not you tell me about a childhood friend?{% endresponse %}
+    {% client %}.* (amig(a|o)) .*{% endclient %}
+    {% response %}Me conte mais sobre seus %1s.{% endresponse %}
+    {% response %}Quando você pensa em um %1, o que vem à mente?{% endresponse %}
+    {% response %}Por que você não me fala sobre um %1 de infância?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Yes{% endclient %}
-    {% response %}You seem quite sure.{% endresponse %}
-    {% response %}OK, but can you elaborate a bit?{% endresponse %}
+    {% client %}sim{% endclient %}
+    {% response %}Você parece ter certeza.{% endresponse %}
+    {% response %}OK, mas você pode elaborar um pouco?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}(.*) computer(.*){% endclient %}
-    {% response %}Are you really talking about me?{% endresponse %}
-    {% response %}Does it seem strange to talk to a computer?{% endresponse %}
-    {% response %}How do computers make you feel?{% endresponse %}
-    {% response %}Do you feel threatened by computers?{% endresponse %}
+    {% client %}(.*) computador(.*){% endclient %}
+    {% response %}Voce esta realmente falando de mim?{% endresponse %}
+    {% response %}Parece estranho falar com um computador?{% endresponse %}
+    {% response %}Como os computadores fazem você se sentir?{% endresponse %}
+    {% response %}Você se sente ameaçado por computadores?{% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Is it (.*){% endclient %}
-    {% response %}Do you think it is %1?{% endresponse %}
-    {% response %}Perhaps it is %1 -- what do you think?{% endresponse %}
-    {% response %}If it were %1, what would you do?{% endresponse %}
-    {% response %}It could well be that %1.{% endresponse %}
+    {% client %}É (.*){% endclient %}
+    {% response %}Você acha que é %1? {% endresponse %}
+    {% response %}Talvez seja %1 - o que você acha? {% endresponse %}
+    {% response %}Se fosse %1, o que você faria? {% endresponse %}
+    {% response %}Pode muito bem ser %1. {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}It is (.*){% endclient %}
-    {% response %}You seem very certain.{% endresponse %}
-    {% response %}If I told you that it probably is not %1, what would you feel?{% endresponse %}
+    {% client %}É (.*){% endclient %}
+    {% response %}Você parece ter certeza. {% endresponse %}
+    {% response %}Se eu dissesse que provavelmente não é %1, o que você sentiria? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Can you (.*){% endclient %}
-    {% response %}What makes you think I can not %1?{% endresponse %}
-    {% response %}If I could %1, then what?{% endresponse %}
-    {% response %}Why do you ask if I can %1?{% endresponse %}
+    {% client %}Você pode (.*){% endclient %}
+    {% response %}O que te faz pensar que eu não posso %1? {% endresponse %}
+    {% response %}Se eu pudesse %1, o que faria? {% endresponse %}
+    {% response %}Por que você pergunta se eu posso %1? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Can I (.*){% endclient %}
-    {% response %}Perhaps you do not want to %1.{% endresponse %}
-    {% response %}Do you want to be able to %1?{% endresponse %}
-    {% response %}If you could %1, would you?{% endresponse %}
+    {% client %}Posso (.*){% endclient %}
+    {% response %}Talvez você não queira %1. {% endresponse %}
+    {% response %}Deseja poder %1? {% endresponse %}
+    {% response %}Se você pudesse %1, faria? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}You are (.*){% endclient %}
-    {% response %}Why do you say I am %1?{% endresponse %}
-    {% response %}Why do you think I am %1?{% endresponse %}
-    {% response %}Does it please you to think that I am %1?{% endresponse %}
-    {% response %}Perhaps you would like me to be %1.{% endresponse %}
-    {% response %}Perhaps you are really talking about yourself?{% endresponse %}
+    {% client %}Você é (.*){% endclient %}
+    {% response %}Por que você diz que sou %1? {% endresponse %}
+    {% response %}Por que você acha que sou %1? {% endresponse %}
+    {% response %}Você gosta de pensar que sou %1? {% endresponse %}
+    {% response %}Talvez você queira que eu seja %1. {% endresponse %}
+    {% response %}Talvez você esteja realmente falando sobre você? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I do not (.*){% endclient %}
-    {% response %}do not you really %1?{% endresponse %}
-    {% response %}Why do not you %1?{% endresponse %}
-    {% response %}Do you want to %1?{% endresponse %}
+    {% client %}Eu não (.*){% endclient %}
+    {% response %}você realmente não %1? {% endresponse %}
+    {% response %}Por que você não %1? {% endresponse %}
+    {% response %}Deseja %1? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I feel (.*){% endclient %}
-    {% response %}Good, tell me more about these feelings.{% endresponse %}
-    {% response %}Do you often feel %1?{% endresponse %}
-    {% response %}When do you usually feel %1?{% endresponse %}
-    {% response %}When you feel %1, what do you do?{% endresponse %}
+    {% client %}Sinto (.*){% endclient %}
+    {% response %}Ótimo, conte-me mais sobre esses sentimentos. {% endresponse %}
+    {% response %}Você costuma sentir %1? {% endresponse %}
+    {% response %}Quando você costuma sentir %1? {% endresponse %}
+    {% response %}Quando você sente %1, o que você faz? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I have (.*){% endclient %}
-    {% response %}Why do you tell me that you have %1?{% endresponse %}
-    {% response %}Have you really %1?{% endresponse %}
-    {% response %}Now that you have %1, what will you do next?{% endresponse %}
+    {% client %}Eu tenho (.*){% endclient %}
+    {% response %}Por que você me diz que tem %1? {% endresponse %}
+    {% response %}Você realmente %1? {% endresponse %}
+    {% response %}Agora que você tem %1, o que fará a seguir? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I would (.*){% endclient %}
-    {% response %}Could you explain why you would %1?{% endresponse %}
-    {% response %}Why would you %1?{% endresponse %}
-    {% response %}Who else knows that you would %1?{% endresponse %}
+    {% client %}Eu (.*){% endclient %}
+    {% response %}Você poderia explicar por que %1? {% endresponse %}
+    {% response %}Por que você %1? {% endresponse %}
+    {% response %}Quem mais sabe que você faria %1? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Is there (.*){% endclient %}
-    {% response %}Do you think there is %1?{% endresponse %}
-    {% response %}it is likely that there is %1.{% endresponse %}
-    {% response %}Would you like there to be %1?{% endresponse %}
+    {% client %}Existe (.*){% endclient %}
+    {% response %}Você acha que há %1? {% endresponse %}
+    {% response %}é provável que haja %1. {% endresponse %}
+    {% response %}Você gostaria que houvesse %1? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}My (.*){% endclient %}
-    {% response %}I see, your %1.{% endresponse %}
-    {% response %}Why do you say that your %1?{% endresponse %}
-    {% response %}When your %1, how do you feel?{% endresponse %}
+    {% client %}Meu (.*){% endclient %}
+    {% response %}Entendo, sua %1. {% endresponse %}
+    {% response %}Por que você diz que seu %1? {% endresponse %}
+    {% response %}Quando você é %1, como você se sente? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}You (.*){% endclient %}
-    {% response %}We should be discussing you, not me.{% endresponse %}
-    {% response %}Why do you say that about me?{% endresponse %}
-    {% response %}Why do you care whether I %1?{% endresponse %}
+    {% client %}Você (.*){% endclient %}
+    {% response %}Devíamos discutir você, não eu. {% endresponse %}
+    {% response %}Por que você diz isso sobre mim? {% endresponse %}
+    {% response %}Por que você se importa se eu %1? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}Why (.*){% endclient %}
-    {% response %}Why do not you tell me the reason why %1?{% endresponse %}
-    {% response %}Why do you think %1?{% endresponse %}
+    {% client %}Por que (.*){% endclient %}
+    {% response %}Por que você não me diz o motivo de %1? {% endresponse %}
+    {% response %}Por que você acha %1? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}I want (.*){% endclient %}
-    {% response %}What would it mean to you if you got %1?{% endresponse %}
-    {% response %}Why do you want %1?{% endresponse %}
-    {% response %}What would you do if you got %1?{% endresponse %}
-    {% response %}If you got %1, then what would you do?{% endresponse %}
+    {% client %}Eu quero (.*){% endclient %}
+    {% response %}O que significaria para você se obtivesse %1? {% endresponse %}
+    {% response %}Por que você quer %1? {% endresponse %}
+    {% response %}O que você faria se obtivesse %1? {% endresponse %}
+    {% response %}Se você obtivesse %1, o que você faria? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}(.*) mother(.*){% endclient %}
-    {% response %}Tell me more about your mother.{% endresponse %}
-    {% response %}What was your relationship with your mother like?{% endresponse %}
-    {% response %}How do you feel about your mother?{% endresponse %}
-    {% response %}How does this relate to your feelings today?{% endresponse %}
-    {% response %}Good family relations are important.{% endresponse %}
+    {% client %}(.*) mãe (.*){% endclient %}
+    {% response %}Fale mais sobre sua mãe. {% endresponse %}
+    {% response %}Como era seu relacionamento com sua mãe? {% endresponse %}
+    {% response %}Como você se sente em relação à sua mãe? {% endresponse %}
+    {% response %}Como isso se relaciona com seus sentimentos hoje? {% endresponse %}
+    {% response %}Boas relações familiares são importantes. {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}(.*) father(.*){% endclient %}
-    {% response %}Tell me more about your father.{% endresponse %}
-    {% response %}How did your father make you feel?{% endresponse %}
-    {% response %}How do you feel about your father?{% endresponse %}
-    {% response %}Does your relationship with your father relate to your feelings today?{% endresponse %}
-    {% response %}Do you have trouble showing affection with your family?{% endresponse %}
+    {% client %}(.*) pai (.*){% endclient %}
+    {% response %}Fale mais sobre seu pai. {% endresponse %}
+    {% response %}Como seu pai fez você se sentir? {% endresponse %}
+    {% response %}Como você se sente em relação ao seu pai? {% endresponse %}
+    {% response %}Seu relacionamento com seu pai está relacionado aos seus sentimentos hoje? {% endresponse %}
+    {% response %}Você tem problemas para demonstrar afeto por sua família? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}(.*) child(.*){% endclient %}
-    {% response %}Did you have close friends as a child?{% endresponse %}
-    {% response %}What is your favorite childhood memory?{% endresponse %}
-    {% response %}Do you remember any dreams or nightmares from childhood?{% endresponse %}
-    {% response %}Did the other children sometimes tease you?{% endresponse %}
-    {% response %}How do you think your childhood experiences relate to your feelings today?{% endresponse %}
+    {% client %}(.*) filho (.*){% endclient %}
+    {% response %}Você teve amigos íntimos quando criança? {% endresponse %}
+    {% response %}Qual é a sua memória favorita da infância? {% endresponse %}
+    {% response %}Você se lembra de algum sonho ou pesadelo da infância? {% endresponse %}
+    {% response %}As outras crianças às vezes provocavam você? {% endresponse %}
+    {% response %}Como você acha que suas experiências de infância se relacionam com seus sentimentos hoje? {% endresponse %}
 {% endblock %}
 
 {% block %}
     {% client %}(.*)\?{% endclient %}
-    {% response %}Why do you ask that?{% endresponse %}
-    {% response %}Please consider whether you can answer your own question.{% endresponse %}
-    {% response %}Perhaps the answer lies within yourself?{% endresponse %}
-    {% response %}Why do not you tell me?{% endresponse %}
+    {% response %}Por que você pergunta isso? {% endresponse %}
+    {% response %}Considere se você pode responder sua própria pergunta. {% endresponse %}
+    {% response %}Talvez a resposta esteja dentro de você? {% endresponse %}
+    {% response %}Por que você não me diz? {% endresponse %}
 {% endblock %}
 
 {% block %}
-    {% client %}quit{% endclient %}
-    {% response %}Thank you for talking with me.{% endresponse %}
-    {% response %}Good-bye.{% endresponse %}
-    {% response %}Thank you. Have a good day!{% endresponse %}
+    {% client %}saiu de{% endclient %}
+    {% response %}Obrigado por falar comigo. {% endresponse %}
+    {% response %}Adeus. {% endresponse %}
+    {% response %}Obrigado. Tenha um bom dia! {% endresponse %}
 {% endblock %}
 
-{% response %}Please tell me more.{% endresponse %}
-{% response %}Let's change focus a bit... Tell me about your family.{% endresponse %}
-{% response %}Can you elaborate on that?{% endresponse %}
-{% response %}Why do you say that %0?{% endresponse %}
-{% response %}I see.{% endresponse %}
-{% response %}Very interesting.{% endresponse %}
-{% response %}%0.{% endresponse %}
-{% response %}I see.  And what does that tell you?{% endresponse %}
-{% response %}How does that make you feel?{% endresponse %}
-{% response %}How do you feel when you say that?{% endresponse %}
+{% response %}Diga-me mais. {% endresponse %}
+{% response %}Vamos mudar um pouco o foco ... Conte-me sobre sua família. {% endresponse %}
+{% response %}Você pode explicar melhor? {% endresponse %}
+{% response %}Por que você diz isso% 0? {% endresponse %}
+{% response %}Entendo. {% endresponse %}
+{% response %}Muito interessante. {% endresponse %}
+{% response %}%0. {% endresponse %}
+{% response %}Entendo. E o que isso diz a você? {% endresponse %}
+{% response %}Como você se sente? {% endresponse %}
+{% response %}Como você se sente quando diz isso? {% endresponse %}
 

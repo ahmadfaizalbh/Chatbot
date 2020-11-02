@@ -1,0 +1,57 @@
+{
+  "gender": {
+    "ele": "ela",
+    "dele": "dela",
+    "mesmo": "mesma",
+    "ela": "ele",
+    "dela": "dele",
+    "mesma": "mesmo"
+  },
+  "person": {
+    "I": "ele",
+    "eu": "ele",
+    "meu": "dele",
+    "ele": "eu",
+    "seu": "meu",
+    "dela": "meu",
+    "ela": "eu"
+  },
+  "person2": {
+    "eu": "você",
+    "meu": "seu",
+    "você": "eu",
+    "seu": "meu"
+  },
+  "normal": {
+    "indo": "indo para",
+    "yha": "sim",
+    "afirmativa": "sim",
+    "roger": "sim",
+    "uh-huh": "sim",
+    "righto": "sim",
+    "yuppers": "sim",
+    "ja": "sim",
+    "certamente": "sim",
+    "amém": "sim",
+    "totalmente": "sim",
+    "sim, senhor": "sim",
+    "uh-uh": "não",
+    "negativo": "não",
+    "veto": "não",
+    "nenhum": "não",
+    "o.k": "sim",
+    "ok": "sim"
+  },
+  "reflections": {
+    "eu sou": "você é",
+    "eu era": "você era",
+    "eu": "você",
+    "eu tenho": "você tem",
+    "eu vou": "você vai",
+    "meu": "seu",
+    "você é": "Eu sou",
+    "você era": "Eu era",
+    "você": "eu tenho",
+    "seu": "meu"
+  }
+}

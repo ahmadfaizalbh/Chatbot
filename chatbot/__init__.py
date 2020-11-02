@@ -7,6 +7,7 @@ from .substitution import Substitution
 from .spellcheck import SpellChecker
 from . import version
 from . import mapper
+from .constansts import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT
 
 try:
     from urllib import quote
@@ -211,13 +212,14 @@ class Chat(object):
         return self._normalizer_regex.sub(lambda mo: self._normalizer[mo.string[mo.start():mo.end()].lower()], text)
 
     @staticmethod
-    def __error_message(expected, found):
-        return "Expected '%s' tag found '%s'" % (expected, found)
+    def __error_message(expected, text, pos, index):
+        content = text[max(0, pos[index - 1][0]): pos[index][1] + 5].strip()
+        return "Expected '%s' tag found '%s' in line `%s`" % (expected, pos[index][2], content)
 
     def __response_tags(self, text, pos, index):
         next_index = index+1
         if pos[next_index][2] != "endresponse":
-            raise SyntaxError(self.__error_message("endresponse", pos[next_index][2]))
+            raise SyntaxError(self.__error_message("endresponse", text, pos, index))
         return text[pos[index][1]:pos[next_index][0]].strip(" \t\n")
 
     def __block_tags(self, text, pos, length, index):
@@ -234,15 +236,16 @@ class Chat(object):
             elif pos[index][2] == "client":
                 index += 1
                 if pos[index][2] != "endclient":
-                    raise SyntaxError(self.__error_message("endclient", pos[index][2]))
+                    raise SyntaxError(self.__error_message("endclient", text, pos, index))
                 within_block["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             elif pos[index][2] == "prev":
                 index += 1
                 if pos[index][2] != "endprev":
-                    raise SyntaxError(self.__error_message("endprev", pos[index][2]))
+                    raise SyntaxError(self.__error_message("endprev", text, pos, index))
                 within_block["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
             else:
-                raise NameError("Invalid Tag '%s'" % pos[index][2])
+                content = text[max(0, pos[index-1][0]): pos[index][1]+5].strip()
+                raise NameError("Invalid Tag '%s':  Error in `%s` " % (pos[index][2], content))
             index += 1
         return index+1, (within_block["client"],
                          within_block["prev"] if within_block["prev"] else None,
@@ -265,7 +268,7 @@ class Chat(object):
                 index = self.__group_tags(text, pos, groups,
                                           (lambda i: pos[i][2] != "endgroup"), length, index+1, name=child_name)
             else:
-                raise SyntaxError(self.__error_message('group, block, or response', pos[index][2]))
+                raise SyntaxError(self.__error_message('group, block, or response', text, pos, index))
         if name in groups:
             groups[name]["pairs"].extend(pairs)
             groups[name]["defaults"].extend(defaults)
@@ -278,7 +281,7 @@ class Chat(object):
             text = template.read()
         pos = [(m.start(0), m.end(0), text[m.start(1):m.end(1)], text[m.start(4):m.end(4)])
                for m in re.finditer(
-                    r'{%[\s\t]+((end)?(block|learn|response|client|prev|group))[\s\t]+([^%]*|%(?=[^}]))%}',
+                    r'{%[\s\t]*((end)?(block|learn|response|client|prev|group))[\s\t]*([^%]*|%(?=[^}]))%}',
                     text)
                ]
         length = len(pos)
@@ -958,5 +961,8 @@ class Chat(object):
                 print(self._say(session, input_sentence))
 
 
-def demo(first_question="Hi, how are you?", **kwargs):
-    Chat(**kwargs).converse(first_question)
+def demo(first_question=None, language="en", **kwargs):
+    if not first_question:
+        first_question = FIRST_QUESTIONS.get(language, FIRST_QUESTIONS["en"])
+    terminate = TERMINATES.get(language, TERMINATES["en"])
+    Chat(language=language, **kwargs).converse(first_question, terminate=terminate)
