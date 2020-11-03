@@ -7,7 +7,7 @@ from .substitution import Substitution
 from .spellcheck import SpellChecker
 from . import version
 from . import mapper
-from .constansts import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT
+from .constansts import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT  # noqa: F401
 
 try:
     from urllib import quote
@@ -57,10 +57,10 @@ def register_call(function_name=None):
     def wrap(function):
         if type(function).__name__ != 'function':
             raise TypeError("function expected found %s" % type(function).__name__)
-        mapper = _function_call.__func__
-        if name in mapper:
+        function_mapper = _function_call.__func__
+        if name in function_mapper:
             raise ValueError("function with same name is already registered")
-        mapper[name] = function
+        function_mapper[name] = function
         return function
 
     if function_name is None:
@@ -147,7 +147,7 @@ class Chat(object):
         if type(pairs).__name__ in ('unicode', 'str'):
             pairs = self.__process_template_file(pairs)
         self._pairs = {'': {"pairs": [], "defaults": []}}
-        if type(pairs) != dict:
+        if not isinstance(pairs, dict):
             pairs = {'': {"pairs": pairs, "defaults": []}}
         elif '' not in pairs:
             raise KeyError("Default topic missing")
@@ -165,12 +165,21 @@ class Chat(object):
         self._attr = mapper.SessionHandler(dict, general=DEFAULT_ATTRIBUTE.copy())
         self.call = call
         self._topic = Topic(self._pairs.keys)
+        self._api = self.__process_api(api)
+
+    @staticmethod
+    def __process_api(api):
         if api is None:
-            api = {}
-        try:
-            self._api = api if type(api) == dict else json.load(api)
-        except Exception:
-            raise SyntaxError("Invalid value for api")
+            return {}
+        if isinstance(api, dict):
+            return api
+        if not isinstance(api, str):
+            raise TypeError("Expected file path or dict for api found %s" % type(api).__name__)
+        with open(api) as file:
+            try:
+                return json.load(file)
+            except json.decoder.JSONDecodeError as e:
+                raise SyntaxError("Invalid value for api: %s" % e)
 
     def __init__handler(self):
         """
@@ -315,15 +324,15 @@ class Chat(object):
                 if length > 3:
                     client, previous, responses, learn = pair[:4]
                 elif length == 3:
-                    if type(pair[1]) in (tuple, list):
+                    if isinstance(pair[1], (tuple, list)):
                         client, responses, learn = pair
                     else:
                         client, previous, responses = pair
-                elif length == 2 and type(pair[1]) in (tuple, list):
+                elif length == 2 and isinstance(pair[1], (tuple, list)):
                     client, responses = pair
                 else:
                     raise ValueError("Response not specified")
-                if type(learn) != dict:
+                if not isinstance(learn, dict):
                     raise TypeError("Invalid Type for learn expected dict got '%s'" % type(learn).__name__)
                 if not client:
                     raise ValueError("Each block should contain at least 1 client regex")
@@ -338,6 +347,14 @@ class Chat(object):
         self._attr[session_id] = DEFAULT_ATTRIBUTE.copy()
         self._topic[session_id] = topic
 
+    @staticmethod
+    def remove_items(items, to_remove):
+        for i in to_remove:
+            try:
+                items.remove(i)
+            except ValueError:
+                pass
+
     def _restructure(self, group, index=None):
         if index is None:
             to_remove = {}
@@ -351,26 +368,18 @@ class Chat(object):
                     group[i].remove(j)
                     try:
                         groups.remove(j)
-                    except Exception:
+                    except ValueError:
                         pass
             index = list(group)
             to_remove = [j for i in list(groups) for j in group[i]]
-            for i in to_remove:
-                try:
-                    groups.remove(i)
-                except Exception:
-                    pass
+            self.remove_items(groups, to_remove)
         else:
             groups = list(index)
         while index:
             i = index.pop()
-            if type(group[i]) == list:
+            if isinstance(group[i], list):
                 group[i] = self._restructure(dict(group), group[i])
-                for j in list(group[i]):
-                    try:
-                        index.remove(j)
-                    except Exception:
-                        pass
+                self.remove_items(index, group[i])
         return {i: group[i] for i in groups}
 
     def _sub_action(self, group, start_end_pair, action):
@@ -437,10 +446,10 @@ class Chat(object):
 
     def _inherit(self, start_end_pair, action):
         group = {}
-        for i in range(len(start_end_pair)):
+        for i, primary in enumerate(start_end_pair):
             group[i] = []
-            for j in range(len(start_end_pair)):
-                if start_end_pair[i][0] < start_end_pair[j][0] and start_end_pair[i][1] > start_end_pair[j][1]:
+            for j, secondary in enumerate(start_end_pair):
+                if primary[0] < secondary[0] and primary[1] > secondary[1]:
                     group[i].append(j)
         group = self._restructure(group)
         group = self._sub_action(group, start_end_pair, action)
@@ -453,37 +462,31 @@ class Chat(object):
         start_end_pair = []
         actions = []
         while new_pos:
-            for i in range(1, len(new_pos)):
-                if response[new_pos[i][1]-1] in "}]":
+            previous = new_pos[0]
+            for i, ele in enumerate(new_pos[1:], start=1):
+                if response[ele[1]-1] in "}]":
                     break
-            if response[new_pos[i-1][0]] in "{[":
-                end_tag = new_pos.pop(i)
-                begin_tag = new_pos.pop(i-1)
-                b_n = begin_tag[1]-begin_tag[0]
-                e_n = end_tag[1]-end_tag[0]
-                if b_n != e_n or not ((response[begin_tag[0]] == "{" and response[end_tag[1]-1] == "}") or
-                                      (response[begin_tag[0]] == "[" and response[end_tag[1]-1] == "]")):
-                    raise SyntaxError("invalid syntax '%s'" % response)
-                start_end_pair.append((begin_tag[1], end_tag[0]))
-                if b_n == 2:
-                    statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',
-                                           response[begin_tag[1]: end_tag[0]])
-                    if statement:
-                        actions.append(statement[0])
-                    else:
-                        raise SyntaxError("invalid statement '%s'" % response[begin_tag[1]:end_tag[0]])
-                else:
-                    if response[begin_tag[0]] == "{":
-                        actions.append("map")
-                    else:
-                        actions.append("eval")
-            else:
+                previous = ele
+            if not (i and response[previous[0]] in "{["):
                 raise SyntaxError("invalid syntax in \"%s\"" % response)
-        try:
-            group = self._inherit(start_end_pair, actions)
-        except SyntaxError:
-            raise SyntaxError("invalid statement in \"%s\"" % response)
-        return group
+            end_tag = new_pos.pop(i)
+            begin_tag = new_pos.pop(i-1)
+            b_n = begin_tag[1]-begin_tag[0]
+            e_n = end_tag[1]-end_tag[0]
+            start_char = response[begin_tag[0]]
+            end_char = response[end_tag[1]-1]
+            if b_n != e_n or not ((start_char == "{" and end_char == "}") or (start_char == "[" and end_char == "]")):
+                raise SyntaxError("invalid syntax '%s'" % response)
+            start_end_pair.append((begin_tag[1], end_tag[0]))
+            if b_n == 2:
+                statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',
+                                       response[begin_tag[1]: end_tag[0]])
+                if not statement:
+                    raise SyntaxError("invalid statement '%s'" % response[begin_tag[1]:end_tag[0]])
+                actions.append(statement[0])
+            else:
+                actions.append("map" if start_char == "{" else actions.append("eval"))
+        return self._inherit(start_end_pair, actions)
 
     @staticmethod
     def _compile_reflections(normal):
@@ -512,24 +515,23 @@ class Chat(object):
         res = prev_res = True
         symbol = "&"
         first = con[0:pos[0][0]].strip()
-        for j in range(len(pos)):
-            s, e, o = pos[j]
+        for j, ele in enumerate(pos):
+            s, e, o = ele
             try:
                 second = con[e:pos[j+1][0]].strip()
-            except Exception:
+            except IndexError:
                 second = con[e:].strip()
             try:
                 a, b = float(first), float(second)
-            except Exception:
+            except (TypeError, ValueError):
                 a, b = first, second
-            try:
+            if o in self.__conditional_operator:
                 res = self.__conditional_operator[o](a, b) and res
-            except Exception:
-                try:
-                    prev_res, res = self.__logical_operator[symbol](prev_res, res), True
-                except Exception:
-                    raise SyntaxError("invalid conditional operator \"%s\"" % symbol)
+            elif symbol in self.__logical_operator:
+                prev_res, res = self.__logical_operator[symbol](prev_res, res), True
                 symbol = o
+            else:
+                raise SyntaxError("Invalid conditional operator '%s'" % symbol)
             first = second
         return self.__logical_operator[symbol](prev_res, res)
 
@@ -683,12 +685,12 @@ class Chat(object):
         if "auth" in self._api[api_name]:
             try:
                 api_params["cookies"] = self.__api_request(**self._api[api_name]["auth"]).cookies
-            except Exception:
+            except TypeError:
                 raise ValueError("In api.json 'auth' of '%s' is wrongly configured." % api_name)
         param = "params" if self._api[api_name][method_name]["method"].upper().strip() == "GET" else "data"
         try:
             api_params[param].update(data)
-        except Exception:
+        except KeyError:
             api_params[param] = data
         api_type = "normal"
         if "type" in api_params:
@@ -708,7 +710,7 @@ class Chat(object):
         if session.attr["_quote"]:
             try:
                 return quote(string)
-            except Exception:
+            except TypeError:
                 return quote(string.encode("UTF-8"))
         return string
 
@@ -849,9 +851,10 @@ class Chat(object):
 
     def __substitute_in_learn(self, session, pair, match, parent_match):
         return tuple((self.__substitute_in_learn(session, i, match, parent_match)
-                      if type(i) in (tuple, list) else
-                      (i if type(i) == dict else (self._wildcards(session, (i, self._condition(i)), match,
-                                                                  parent_match) if i else i))) for i in pair)
+                      if isinstance(i, (tuple, list)) else
+                      (i if isinstance(i, dict) else (
+                          self._wildcards(session, (i, self._condition(i)), match,
+                                          parent_match) if i else i))) for i in pair)
 
     @staticmethod
     def __get_topic_recursion(topics):
@@ -863,7 +866,7 @@ class Chat(object):
         try:
             del result['']
             result = {'': result}
-        except Exception:
+        except KeyError:
             pass
         return result
 
