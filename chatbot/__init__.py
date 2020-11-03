@@ -141,6 +141,11 @@ class Chat(object):
             self.local_path = local_path
         self.spell_checker = SpellChecker(self.local_path, language)
         self.substitution = Substitution(self.local_path, language)
+        self._re_tags = re.compile(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+')
+        self._re_tag_parenthesis = re.compile(r'{%?|%?}|\[|\]')
+        self._re_block_tags = re.compile(
+            r'{%[\s\t]*((end)?(block|learn|response|client|prev|group))[\s\t]*([^%]*|%(?=[^}]))%}')
+        self._re_operators = re.compile(r'([\<\>!=]=|[\<\>]|&|\|)')
         if default_template is None:
             default_template = path.join(self.local_path, language, "default.template")
         default_pairs = self.__process_template_file(default_template)
@@ -289,10 +294,7 @@ class Chat(object):
         with open(file_name, encoding='utf-8') as template:
             text = template.read()
         pos = [(m.start(0), m.end(0), text[m.start(1):m.end(1)], text[m.start(4):m.end(4)])
-               for m in re.finditer(
-                    r'{%[\s\t]*((end)?(block|learn|response|client|prev|group))[\s\t]*([^%]*|%(?=[^}]))%}',
-                    text)
-               ]
+               for m in self._re_block_tags.finditer(text)]
         length = len(pos)
         groups = {}
         self.__group_tags(text, pos, groups, (lambda i: i < length), length)
@@ -455,37 +457,42 @@ class Chat(object):
         group = self._sub_action(group, start_end_pair, action)
         return self._set_within(group)
 
+    def __action(self, response, pos, index):
+        end_tag = pos.pop(index)
+        begin_tag = pos.pop(index-1)
+        b_n = begin_tag[1]-begin_tag[0]
+        e_n = end_tag[1]-end_tag[0]
+        start_char = response[begin_tag[0]]
+        end_char = response[end_tag[1]-1]
+        if b_n != e_n or not ((start_char == "{" and end_char == "}") or (start_char == "[" and end_char == "]")):
+            raise SyntaxError("invalid syntax '%s'" % response)
+        if b_n == 2:
+            statement = self._re_tags.findall(response[begin_tag[1]: end_tag[0]])
+            if not statement:
+                raise SyntaxError("invalid statement '%s'" % response[begin_tag[1]:end_tag[0]])
+            action = statement[0]
+        elif start_char == "{":
+            action = "map"
+        else:
+            action = "eval"
+        return begin_tag[1], end_tag[0], action
+
     def _condition(self, response):
-        pos = [(m.start(0), m.end(0)) for m in re.finditer(r'{%?|%?}|\[|\]', response)]
-        new_pos = [(start, end) for start, end in pos if (not start) or response[start-1] != "\\"]
-        i = 0
+        pos = ((m.start(0), m.end(0)) for m in self._re_tag_parenthesis.finditer(response))
+        pos = [(start, end) for start, end in pos if (not start) or response[start-1] != "\\"]
         start_end_pair = []
         actions = []
-        while new_pos:
-            previous = new_pos[0]
-            for i, ele in enumerate(new_pos[1:], start=1):
-                if response[ele[1]-1] in "}]":
+        while pos:
+            index = 0
+            for _, ele in pos[1:]:
+                index += 1
+                if response[ele-1] in "}]":
                     break
-                previous = ele
-            if not (i and response[previous[0]] in "{["):
+            if not (index and response[pos[index-1][0]] in "{["):
                 raise SyntaxError("invalid syntax in \"%s\"" % response)
-            end_tag = new_pos.pop(i)
-            begin_tag = new_pos.pop(i-1)
-            b_n = begin_tag[1]-begin_tag[0]
-            e_n = end_tag[1]-end_tag[0]
-            start_char = response[begin_tag[0]]
-            end_char = response[end_tag[1]-1]
-            if b_n != e_n or not ((start_char == "{" and end_char == "}") or (start_char == "[" and end_char == "]")):
-                raise SyntaxError("invalid syntax '%s'" % response)
-            start_end_pair.append((begin_tag[1], end_tag[0]))
-            if b_n == 2:
-                statement = re.findall(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+',
-                                       response[begin_tag[1]: end_tag[0]])
-                if not statement:
-                    raise SyntaxError("invalid statement '%s'" % response[begin_tag[1]:end_tag[0]])
-                actions.append(statement[0])
-            else:
-                actions.append("map" if start_char == "{" else actions.append("eval"))
+            start, end, action = self.__action(response, pos, index)
+            start_end_pair.append((start, end))
+            actions.append(action)
         return self._inherit(start_end_pair, actions)
 
     @staticmethod
@@ -509,7 +516,7 @@ class Chat(object):
         return self._regex.sub(lambda mo: self._reflections[mo.string[mo.start():mo.end()]], text.lower())
 
     def _check_if(self, session, con):
-        pos = [(m.start(0), m.end(0), m.group(0)) for m in re.finditer(r'([\<\>!=]=|[\<\>]|&|\|)', con)]
+        pos = [(m.start(0), m.end(0), m.group(0)) for m in self._re_operators.finditer(con)]
         if not pos:
             return con.strip()
         res = prev_res = True
