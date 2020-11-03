@@ -13,7 +13,7 @@ class Substitution:
             warn("substitution for language `{}` not Implemented".format(language),
                  ResourceWarning)
             self.substitutions = {}
-        if type(self.substitutions) != dict:
+        if not isinstance(self.substitutions, dict):
             raise TypeError("Expected dictionary `{}` in but found {}".format(
                 file_path, type(self.substitutions)))
 
