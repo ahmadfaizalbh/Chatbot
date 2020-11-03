@@ -24,6 +24,12 @@ __version__ = '{}.{}.{}.{}'.format(version.MAJOR, version.MINOR, version.MICRO, 
 
 
 DEFAULT_ATTRIBUTE = {"match": None, "pmatch": None, "_quote": False, "substitute": True}
+RE_TAG_PARENTHESIS = re.compile(r'{%?|%?}|\[|\]')
+RE_OPERATORS = re.compile(r'([\<\>!=]=|[\<\>]|&|\|)')
+RE_NAMED_GROUP = re.compile(r'%([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)')
+RE_NAMED_GROUP_SILENT = re.compile(r'%!([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)')
+RE_NUMBERED_GROUP = re.compile(r'%[0-9]+')
+RE_NUMBERED_GROUP_SILENT = re.compile(r'%![0-9]+')
 
 
 class MultiFunctionCall:
@@ -142,10 +148,8 @@ class Chat(object):
         self.spell_checker = SpellChecker(self.local_path, language)
         self.substitution = Substitution(self.local_path, language)
         self._re_tags = re.compile(r'^[\s\t]*(if|endif|elif|else|chat|low|up|cap|call|topic)[\s\t]+')
-        self._re_tag_parenthesis = re.compile(r'{%?|%?}|\[|\]')
         self._re_block_tags = re.compile(
             r'{%[\s\t]*((end)?(block|learn|response|client|prev|group))[\s\t]*([^%]*|%(?=[^}]))%}')
-        self._re_operators = re.compile(r'([\<\>!=]=|[\<\>]|&|\|)')
         if default_template is None:
             default_template = path.join(self.local_path, language, "default.template")
         default_pairs = self.__process_template_file(default_template)
@@ -478,7 +482,7 @@ class Chat(object):
         return begin_tag[1], end_tag[0], action
 
     def _condition(self, response):
-        pos = ((m.start(0), m.end(0)) for m in self._re_tag_parenthesis.finditer(response))
+        pos = ((m.start(0), m.end(0)) for m in RE_TAG_PARENTHESIS.finditer(response))
         pos = [(start, end) for start, end in pos if (not start) or response[start-1] != "\\"]
         start_end_pair = []
         actions = []
@@ -516,7 +520,7 @@ class Chat(object):
         return self._regex.sub(lambda mo: self._reflections[mo.string[mo.start():mo.end()]], text.lower())
 
     def _check_if(self, session, con):
-        pos = [(m.start(0), m.end(0), m.group(0)) for m in self._re_operators.finditer(con)]
+        pos = [(m.start(0), m.end(0), m.group(0)) for m in RE_OPERATORS.finditer(con)]
         if not pos:
             return con.strip()
         res = prev_res = True
@@ -721,15 +725,21 @@ class Chat(object):
                 return quote(string.encode("UTF-8"))
         return string
 
-    def __substitute_from_client_statement(self, session, match, prev_response, extra_symbol=""):
+    def __substitute_from_client_statement(self, session, match, prev_response, silent=False):
         """
         Substitute from Client statement into response
         """
-        # TODO: Need to move re.find to pre processing
         prev = 0
-        start_padding = 1+len(extra_symbol)
+        if silent:
+            start_padding = 2
+            re_numbered_group = RE_NUMBERED_GROUP_SILENT
+            re_named_group = RE_NAMED_GROUP_SILENT
+        else:
+            start_padding = 1
+            re_numbered_group = RE_NUMBERED_GROUP
+            re_named_group = RE_NAMED_GROUP
         final_response = ""
-        for m in re.finditer(r'%'+extra_symbol+'[0-9]+', prev_response):
+        for m in re_numbered_group.finditer(prev_response):
             start = m.start(0)
             end = m.end(0)
             num = int(prev_response[start+start_padding:end])
@@ -743,7 +753,8 @@ class Chat(object):
         prev_response = final_response + prev_response[prev:]
         final_response = ""
         prev = 0
-        for m in re.finditer(r'%'+extra_symbol+'([a-zA-Z_][a-zA-Z_0-9]*)([^a-zA-Z_0-9]|$)', prev_response):
+
+        for m in re_named_group.finditer(prev_response):
             start = m.start(1)
             end = m.end(1)
             final_response += prev_response[prev:start-start_padding]
@@ -762,7 +773,7 @@ class Chat(object):
             if parent_match is None:
                 return final_response
             return self.__substitute_from_client_statement(session, parent_match, final_response,
-                                                           extra_symbol='!')
+                                                           silent=True)
         i = 0
         final_response = ""
         _quote = session.attr.get("_quote", True)
