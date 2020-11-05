@@ -21,8 +21,9 @@
 - [ ] Support Image and Vidio in response 
 - [ ] Mapping table (normal and reflections) language specific (localization)
   - [x] English
-  - [ ] Portuguese (Brazil)
-  - [ ] FrenchGerman
+  - [x] Portuguese (Brazil)
+  - [ ] French
+  - [x] German
   - [ ] Chinese
   - [ ] Japnese
   - [ ] Hindi
@@ -31,7 +32,8 @@
 - [ ] Base (default) template language specific (localization)
   - [x] English
   - [x] Portuguese (Brazil)
-  - [ ] FrenchGerman
+  - [ ] French
+  - [x] German
   - [ ] Chinese
   - [ ] Japnese
   - [ ] Hindi
