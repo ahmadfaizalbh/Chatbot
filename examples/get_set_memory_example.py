@@ -20,10 +20,14 @@ chat.converse("""
 Memory get and set example
 
 Usage:
-increment <name>
-show <name>
+  increment <name>
+  show <name>
+  remember <name> is <value>
+  tell me about <name>
 
 example:
-increment mango
-show mango
+  increment mango
+  show mango
+  remember sun is red hot star in our solar system
+  tell me about sun
 """)
