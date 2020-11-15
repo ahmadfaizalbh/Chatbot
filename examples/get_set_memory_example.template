@@ -1,0 +1,16 @@
+{% block %}
+    {% client %}increment (?P<name>.*){% endclient %}
+    {% response %}{% call increment_count: %name %}{% endresponse %}
+{% endblock %}
+{% block %}
+    {% client %}show (?P<name>.*){% endclient %}
+    {% response %}{ %name }{% endresponse %}
+{% endblock %}
+{% block %}
+    {% client %}remember (?P<name>.*) is (?P<value>.*){% endclient %}
+    {% response %}I will remember %name is { %name : %value }{% endresponse %}
+{% endblock %}
+{% block %}
+    {% client %}(what is|(do you remember|tell me) about) (?P<name>.*){% endclient %}
+    {% response %}{% if { %name } %}%name is { %name }{% else %}I don't know about %name{% endif %}{% endresponse %}
+{% endblock %}
