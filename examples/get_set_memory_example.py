@@ -1,7 +1,5 @@
 from chatbot import Chat, register_call
 import os
-import warnings
-warnings.filterwarnings("ignore")
 
 
 @register_call("increment_count")
