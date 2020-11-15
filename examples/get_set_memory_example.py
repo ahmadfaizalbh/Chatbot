@@ -15,7 +15,7 @@ def memory_get_set_example(session, query):
     return f"count  {new_count}"
 
 
-chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "example.template"))
+chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "get_set_memory_example.template"))
 chat.converse("""
 Memory get and set example
 
