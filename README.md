@@ -1,3 +1,7 @@
+[![Downloads](https://static.pepy.tech/personalized-badge/chatbotai?period=total&units=international_system&left_color=black&right_color=blue&left_text=Downloads)](https://pepy.tech/project/chatbotai)
+[![PyPI version](https://badge.fury.io/py/chatbotAI.svg)](https://badge.fury.io/py/chatbotAI)
+![Upload Python Package](https://github.com/ahmadfaizalbh/Chatbot/workflows/Upload%20Python%20Package/badge.svg)
+
 # Chatbot
 Python chatbot AI that helps in creating a python based chatbot with
 minimal coding. This provides both bots AI and chat handler and also
