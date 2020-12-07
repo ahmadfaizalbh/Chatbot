@@ -1,4 +1,4 @@
-[![Downloads](https://static.pepy.tech/personalized-badge/chatbotai?period=total&units=international_system&left_color=black&right_color=blue&left_text=Downloads)](https://pepy.tech/project/chatbotai)
+[![Downloads](https://pepy.tech/badge/chatbotai)](https://pepy.tech/project/chatbotai)
 [![PyPI version](https://badge.fury.io/py/chatbotAI.svg)](https://badge.fury.io/py/chatbotAI)
 ![Upload Python Package](https://github.com/ahmadfaizalbh/Chatbot/workflows/Upload%20Python%20Package/badge.svg)
 
