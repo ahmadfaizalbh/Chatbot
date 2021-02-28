@@ -1,6 +1,7 @@
 [![Downloads](https://pepy.tech/badge/chatbotai)](https://pepy.tech/project/chatbotai)
 [![PyPI version](https://badge.fury.io/py/chatbotAI.svg)](https://badge.fury.io/py/chatbotAI)
 ![Upload Python Package](https://github.com/ahmadfaizalbh/Chatbot/workflows/Upload%20Python%20Package/badge.svg)
+[![CodeQL](https://github.com/ahmadfaizalbh/Chatbot/actions/workflows/codeql-analysis.yml/badge.svg)](https://github.com/ahmadfaizalbh/Chatbot/actions/workflows/codeql-analysis.yml)
 
 # ChatBotAI
 Python chatbot AI that helps in creating a python based chatbot with
