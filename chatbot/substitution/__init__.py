@@ -7,7 +7,7 @@ class Substitution:
     def __init__(self, local_path, language="en"):
         file_path = path.join(local_path, language, "substitutions.json")
         try:
-            with open(file_path) as f:
+            with open(file_path, encoding="utf-8") as f:
                 self.substitutions = json.load(f)
         except FileNotFoundError:
             warn("substitution for language `{}` not Implemented".format(language),
