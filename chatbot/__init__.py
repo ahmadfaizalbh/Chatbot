@@ -7,7 +7,7 @@ from .substitution import Substitution
 from .spellcheck import SpellChecker
 from . import version
 from . import mapper
-from .constansts import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT  # noqa: F401
+from .constants import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT  # noqa: F401
 
 try:
     from urllib import quote
@@ -20,7 +20,7 @@ except NameError:
     input_reader = input
 
 
-__version__ = '{}.{}.{}.{}'.format(version.MAJOR, version.MINOR, version.MICRO, version.PATCH)
+__version__ = version.__version__
 
 
 DEFAULT_ATTRIBUTE = {"match": None, "pmatch": None, "_quote": False, "substitute": True}
