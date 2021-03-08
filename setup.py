@@ -2,9 +2,8 @@
 
 from setuptools import setup
 
-chatbot = __import__('chatbot')
-version = chatbot.__version__
-LANGUAGE_SUPPORT = chatbot.LANGUAGE_SUPPORT
+version = __import__('chatbot.version').__version__
+LANGUAGE_SUPPORT = __import__('chatbot.constants').LANGUAGE_SUPPORT
 package_data = []
 
 with open("README.md", "r") as fh:
