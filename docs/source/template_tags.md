@@ -198,7 +198,7 @@ Age 2
 
 
 ## Previous Tags
-Previous tag helps to give the proper response or save some input for future response 
+Previous tag used to give the auto response for the chat query from the Chatbot.
 
 ### Template Syntax
 ```
@@ -207,6 +207,8 @@ Previous tag helps to give the proper response or save some input for future res
 ```
 
 ### Sample previous Template
+If Chatbot ask query `how are you` and user text can be `I feel/am feeling/ am absolutely good`.
+we are matching the current user input with the previous text and returning the response.
 ```
 {% block %}
     {% client %}(I (am|feel) )?(feeling )?(absolutely )?(.*){% endclient %}
@@ -214,10 +216,19 @@ Previous tag helps to give the proper response or save some input for future res
     {% response %}{% if {%low %5 %} == fine | {%low %5 %} == good | {%low %5 %} == happy %}  Nice to know that you are %5. What else? {% else %} why you feel %5 {% endif %}{% endresponse %}
 {% endblock %}
 ```
-#### Chat Sample
+#### Chat Sample 
+Below Sample, we have the auto query from bot `Hi, how are you?`.  
+If user enter `I feel good` or in the pattern inside the client tag.
+They get the response based on the input in this sample we have input `good`.
+so we get response `Nice to know that you are good`. 
+Other than fine, good, happy response will be `why you feel `
+
+
 ```
-> I am feeling good
- Nice to know that you are good. What else? 
+Hi, how are you?
+> I feel good
+  Nice to know that you are good. What else? 
+ 
 ```
 
 ## Learn Tags
