@@ -36,6 +36,20 @@ setup(
     },
     include_package_data=True,
     package_data={"chatbot":  package_data},
+    classifiers = [
+        'Development Status :: 4 - Beta',
+        'Environment :: Console',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        'Natural Language :: German',
+        'Natural Language :: Portuguese (Brazil)',
+        'Natural Language :: Hebrew',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Software Development :: Libraries :: Python Modules',
+        'Topic :: Communications :: Chat',
+    ],
     install_requires=[
           'requests',
       ]
