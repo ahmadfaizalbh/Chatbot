@@ -19,9 +19,7 @@ try:
 except NameError:
     input_reader = input
 
-
 __version__ = version.__version__
-
 
 DEFAULT_ATTRIBUTE = {"match": None, "pmatch": None, "_quote": False, "substitute": True}
 RE_TAG_PARENTHESIS = re.compile(r'{%?|%?}|\[|\]')
@@ -203,20 +201,20 @@ class Chat(object):
             "topic": self.__topic_handler,
             "map": self.__map_handler,
             "eval": self.__eval_handler,
-            }
+        }
         self.__conditional_operator = {
-                "!=": lambda a, b: a != b,
-                ">=": lambda a, b: a >= b,
-                "<=": lambda a, b: a <= b,
-                "==": lambda a, b: a == b,
-                "<": lambda a, b: a < b,
-                ">": lambda a, b: a > b
-            }
+            "!=": lambda a, b: a != b,
+            ">=": lambda a, b: a >= b,
+            "<=": lambda a, b: a <= b,
+            "==": lambda a, b: a == b,
+            "<": lambda a, b: a < b,
+            ">": lambda a, b: a > b
+        }
         self.__logical_operator = {
-                '&': lambda a, b: a and b,
-                '|': lambda a, b: a or b,
-                '^': lambda a, b: a ^ b
-            }
+            '&': lambda a, b: a and b,
+            '|': lambda a, b: a or b,
+            '^': lambda a, b: a ^ b
+        }
 
     def __normalize(self, text):
         """
@@ -235,18 +233,29 @@ class Chat(object):
         return "Expected '%s' tag found '%s' in line `%s`" % (expected, pos[index][2], content)
 
     def __response_tags(self, text, pos, index):
-        next_index = index+1
+        next_index = index + 1
         if pos[next_index][2] != "endresponse":
             raise SyntaxError(self.__error_message("endresponse", text, pos, index))
         return text[pos[index][1]:pos[next_index][0]].strip(" \t\n")
 
     def __block_tags(self, text, pos, length, index):
+        """
+         text: (str) template file
+         pos: (list) list of tuples
+                    (tag_content_start, tag_content_pos_end, tag_name, '')
+         length:(int) total count of pos list
+         index:(int) current processing tag index inside the pos list
+
+         Process the each block tags then
+         return the index and content inside the block.
+
+        """
         within_block = {"learn": {}, "response": [], "client": [], "prev": []}
         while pos[index][2] != "endblock":
             if pos[index][2] == "learn":
                 within_block["learn"] = {}
                 index = self.__group_tags(text, pos, within_block["learn"],
-                                          (lambda i: pos[i][2] != "endlearn"), length, index+1)
+                                          (lambda i: pos[i][2] != "endlearn"), length, index + 1)
                 index -= 1
             elif pos[index][2] == "response":
                 within_block["response"].append(self.__response_tags(text, pos, index))
@@ -255,36 +264,48 @@ class Chat(object):
                 index += 1
                 if pos[index][2] != "endclient":
                     raise SyntaxError(self.__error_message("endclient", text, pos, index))
-                within_block["client"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
+                within_block["client"].append(text[pos[index - 1][1]:pos[index][0]].strip(" \t\n"))
             elif pos[index][2] == "prev":
                 index += 1
                 if pos[index][2] != "endprev":
                     raise SyntaxError(self.__error_message("endprev", text, pos, index))
-                within_block["prev"].append(text[pos[index-1][1]:pos[index][0]].strip(" \t\n"))
+                within_block["prev"].append(text[pos[index - 1][1]:pos[index][0]].strip(" \t\n"))
             else:
-                content = text[max(0, pos[index-1][0]): pos[index][1]+5].strip()
+                content = text[max(0, pos[index - 1][0]): pos[index][1] + 5].strip()
                 raise NameError("Invalid Tag '%s':  Error in `%s` " % (pos[index][2], content))
             index += 1
-        return index+1, (within_block["client"],
-                         within_block["prev"] if within_block["prev"] else None,
-                         within_block["response"],
-                         within_block["learn"])
+        return index + 1, (within_block["client"],
+                           within_block["prev"] if within_block["prev"] else None,
+                           within_block["response"],
+                           within_block["learn"])
 
     def __group_tags(self, text, pos, groups, condition, length, index=0, name=""):
+        """
+        text: (str) template file
+        pos: (list) list of tuples
+                    (tag_content_start, tag_content_pos_end, tag_name, '')
+        groups: (dict) groups key values pairs
+        condition: (function) condition to process the tag
+        length:(int) total count of pos list
+        index:(int) current processing tag index inside the pos list
+
+        Iterate the processed template based on block type (block, response, group).
+        Group tags are recursively processed. Both are append to pairs and defaults.
+        """
         pairs = []
         defaults = []
         while condition(index):
             if pos[index][2] == "block":
-                p, within = self.__block_tags(text, pos, length, index+1)
+                p, within = self.__block_tags(text, pos, length, index + 1)
                 pairs.append(within)
                 index = p
             elif pos[index][2] == "response":
                 defaults.append(self.__response_tags(text, pos, index))
                 index += 2
             elif pos[index][2] == "group":
-                child_name = (name+"."+pos[index][3].strip()) if name else pos[index][3].strip()
+                child_name = (name + "." + pos[index][3].strip()) if name else pos[index][3].strip()
                 index = self.__group_tags(text, pos, groups,
-                                          (lambda i: pos[i][2] != "endgroup"), length, index+1, name=child_name)
+                                          (lambda i: pos[i][2] != "endgroup"), length, index + 1, name=child_name)
             else:
                 raise SyntaxError(self.__error_message('group, block, or response', text, pos, index))
         if name in groups:
@@ -292,9 +313,19 @@ class Chat(object):
             groups[name]["defaults"].extend(defaults)
         else:
             groups[name] = {"pairs": pairs, "defaults": defaults}
-        return index+1
+        return index + 1
 
     def __process_template_file(self, file_name):
+        """
+         file_name: (str) template file path
+         return: (dict) Each group response separate by group name.
+
+         Read the template file and generate the list of tuple
+         (tag_start_pos, tag_end_pos, tag_name, '') for each block tags.
+
+         Then, Update groups dictionary with specific group. If group name is not given
+         then it'll consider as general group.
+        """
         with open(file_name, encoding='utf-8') as template:
             text = template.read()
         pos = [(m.start(0), m.end(0), text[m.start(1):m.end(1)], text[m.start(4):m.end(4)])
@@ -314,7 +345,7 @@ class Chat(object):
             try:
                 regexps.append(re.compile(self.__normalize(pattern), re.IGNORECASE))
             except Exception as e:
-                e.args = (str(e) + " in pattern "+pattern, )
+                e.args = (str(e) + " in pattern " + pattern,)
                 raise e
         return regexps
 
@@ -390,22 +421,22 @@ class Chat(object):
 
     def _sub_action(self, group, start_end_pair, action):
         return {i: {
-                    "action": action[i],
-                    "start": start_end_pair[i][0],
-                    "end": start_end_pair[i][1],
-                    "child": self._sub_action(group[i], start_end_pair, action)
-                  } for i in group}
+            "action": action[i],
+            "start": start_end_pair[i][0],
+            "end": start_end_pair[i][1],
+            "child": self._sub_action(group[i], start_end_pair, action)
+        } for i in group}
 
     def _get_within(self, group, index):
 
         def init_group(p):
             group[index[p]]["within"] = []
             ordered_group.append(group[index[p]])
-            return p+1
+            return p + 1
 
         def append_group(position, p):
             position, within = self._get_within(group, index[position:])
-            group[index[p-1]]["within"] += within
+            group[index[p - 1]]["within"] += within
             return position
 
         i = 0
@@ -423,7 +454,7 @@ class Chat(object):
                         pos = i = init_group(i)
                         start_if = False
                         while group[index[pos]]["action"] != "endif":
-                            pos = append_group(pos, i)+i
+                            pos = append_group(pos, i) + i
                         i = init_group(pos)
                     elif group[index[i]]["action"] == "endif":
                         i = init_group(i)
@@ -463,11 +494,11 @@ class Chat(object):
 
     def __action(self, response, pos, index):
         end_tag = pos.pop(index)
-        begin_tag = pos.pop(index-1)
-        b_n = begin_tag[1]-begin_tag[0]
-        e_n = end_tag[1]-end_tag[0]
+        begin_tag = pos.pop(index - 1)
+        b_n = begin_tag[1] - begin_tag[0]
+        e_n = end_tag[1] - end_tag[0]
         start_char = response[begin_tag[0]]
-        end_char = response[end_tag[1]-1]
+        end_char = response[end_tag[1] - 1]
         if b_n != e_n or not ((start_char == "{" and end_char == "}") or (start_char == "[" and end_char == "]")):
             raise SyntaxError("invalid syntax '%s'" % response)
         if b_n == 2:
@@ -483,16 +514,16 @@ class Chat(object):
 
     def _condition(self, response):
         pos = ((m.start(0), m.end(0)) for m in RE_TAG_PARENTHESIS.finditer(response))
-        pos = [(start, end) for start, end in pos if (not start) or response[start-1] != "\\"]
+        pos = [(start, end) for start, end in pos if (not start) or response[start - 1] != "\\"]
         start_end_pair = []
         actions = []
         while pos:
             index = 0
             for _, ele in pos[1:]:
                 index += 1
-                if response[ele-1] in "}]":
+                if response[ele - 1] in "}]":
                     break
-            if not (index and response[pos[index-1][0]] in "{["):
+            if not (index and response[pos[index - 1][0]] in "{["):
                 raise SyntaxError("invalid syntax in \"%s\"" % response)
             start, end, action = self.__action(response, pos, index)
             start_end_pair.append((start, end))
@@ -529,7 +560,7 @@ class Chat(object):
         for j, ele in enumerate(pos):
             s, e, o = ele
             try:
-                second = con[e:pos[j+1][0]].strip()
+                second = con[e:pos[j + 1][0]].strip()
             except IndexError:
                 second = con[e:].strip()
             try:
@@ -560,7 +591,7 @@ class Chat(object):
                                                      start, end)
             i += 1
             if self._check_if(session, con):
-                matched_index = i-1
+                matched_index = i - 1
                 while condition[i]["action"] != "endif":
                     i += 1
                 check = False
@@ -578,8 +609,8 @@ class Chat(object):
         session.attr["substitute"] = substitute
         return ((self._check_and_evaluate_condition(session, response,
                                                     condition[matched_index]["within"],
-                                                    condition[matched_index]["end"]+2,
-                                                    condition[matched_index+1]["start"]-2
+                                                    condition[matched_index]["end"] + 2,
+                                                    condition[matched_index + 1]["start"] - 2
                                                     ) if matched_index is not None else ""), i)
 
     def __handler(self, session, condition, response, action):
@@ -616,7 +647,7 @@ class Chat(object):
 
     @staticmethod
     def __get_start_pos(start, response, exp):
-        return start+re.compile(r"([\s\t]*"+exp+r"[\s\t]+)").search(response[start:]).end(1)
+        return start + re.compile(r"([\s\t]*" + exp + r"[\s\t]+)").search(response[start:]).end(1)
 
     def __map_handler(self, session, condition, response):
         start = condition["start"]
@@ -631,7 +662,7 @@ class Chat(object):
         this_index = 0
         for this_index in range(1, len(content)):
             if name[-1] == "\\":
-                name += ":"+content[this_index]
+                name += ":" + content[this_index]
             else:
                 this_index -= 1
                 break
@@ -639,9 +670,9 @@ class Chat(object):
         name = name.strip().lower()
         if this_index < (len(content)):
             value = content[this_index]
-            for this_index in range(this_index+1, len(content)):
+            for this_index in range(this_index + 1, len(content)):
                 if value[-1] == "\\":
-                    value += ":"+content[this_index]
+                    value += ":" + content[this_index]
                 else:
                     break
             session.memory[name] = self._substitute(session, value.strip())
@@ -673,7 +704,7 @@ class Chat(object):
                 key = pair[0]
                 data[key] = ":".join(pair[1:])
             elif key is not None:
-                data[key] += ","+pair[0]
+                data[key] += "," + pair[0]
             else:
                 raise SyntaxError("invalid syntax '%s'" % response[start:end])
         result = self.__api_handler(api_name, method_name, data)
@@ -683,7 +714,7 @@ class Chat(object):
         try:
             return requests.__dict__[method.lower().strip()](url, **karg)
         except requests.exceptions.MissingSchema:
-            return self.__api_request("http://"+url, method, **karg)
+            return self.__api_request("http://" + url, method, **karg)
         except requests.exceptions.ConnectionError:
             raise RuntimeError("Couldn't connect to server (unreachable). Check your network")
         except KeyError:
@@ -742,7 +773,7 @@ class Chat(object):
         for m in re_numbered_group.finditer(prev_response):
             start = m.start(0)
             end = m.end(0)
-            num = int(prev_response[start+start_padding:end])
+            num = int(prev_response[start + start_padding:end])
             final_response += prev_response[prev:start]
             try:
                 final_response += self._quote(session, self._substitute(session, match.group(num)))
@@ -757,7 +788,7 @@ class Chat(object):
         for m in re_named_group.finditer(prev_response):
             start = m.start(1)
             end = m.end(1)
-            final_response += prev_response[prev:start-start_padding]
+            final_response += prev_response[prev:start - start_padding]
             value = named_group.get(prev_response[start:end], "").strip()
             if value:
                 final_response += self._quote(session, self._substitute(session, value))
@@ -778,7 +809,7 @@ class Chat(object):
         final_response = ""
         _quote = session.attr.get("_quote", True)
         while i < len(condition):
-            pos = condition[i]["start"]-(1 if condition[i]["action"] in ("map", "eval") else 2)
+            pos = condition[i]["start"] - (1 if condition[i]["action"] in ("map", "eval") else 2)
             final_response += self._check_and_evaluate_condition(session, response[start_index:pos])
             try:
                 session.attr["_quote"] = False
@@ -790,7 +821,7 @@ class Chat(object):
                 if condition[i]["action"] == "if":
                     response_txt, i = self.__if_handler(session, i, condition, response)
                     final_response += response_txt
-            start_index = condition[i]["end"]+(1 if condition[i]["action"] in ("map", "eval") else 2)
+            start_index = condition[i]["end"] + (1 if condition[i]["action"] in ("map", "eval") else 2)
             i += 1
         final_response += self._check_and_evaluate_condition(session, response[start_index:end_index])
         return final_response
@@ -802,7 +833,7 @@ class Chat(object):
         return re.sub(r'\\([\[\]{}%:])', r"\1", self._check_and_evaluate_condition(session, response, condition))
 
     def __chose_and_process(self, session, choices, match, parent_match):
-        resp = random.choice(choices)    # pick a random response
+        resp = random.choice(choices)  # pick a random response
         resp = self._wildcards(session, resp, match, parent_match)  # process wildcards
         # fix munged punctuation at the end
         if resp[-2:] == '?.':
@@ -828,17 +859,18 @@ class Chat(object):
 
     def __response_on_topic(self, session, text, previous_text, text_correction, current_topic):
         match = self.__intend_selection(text, previous_text, current_topic) or \
-              self.__intend_selection(text_correction, previous_text, current_topic)
+                self.__intend_selection(text_correction, previous_text, current_topic)
         if match:
             match, parent_match, response, learn = match
             if learn:
                 self.__process_learn({
                     self._wildcards(session, (topic, self._condition(topic)), match, parent_match):
-                    {
-                        'pairs': [self.__substitute_in_learn(session, pair, match, parent_match)
-                                  for pair in learn[topic]['pairs']],
-                        'defaults': [self._wildcards(session, (default, self._condition(default)), match, parent_match)
-                                     for default in learn[topic]['defaults']]}
+                        {
+                            'pairs': [self.__substitute_in_learn(session, pair, match, parent_match)
+                                      for pair in learn[topic]['pairs']],
+                            'defaults': [
+                                self._wildcards(session, (default, self._condition(default)), match, parent_match)
+                                for default in learn[topic]['defaults']]}
                     for topic in learn
                 })
             return self.__chose_and_process(session, response, match, parent_match)
@@ -894,34 +926,34 @@ class Chat(object):
                 self.__generate_and_write_template(template, self._pairs, topic_name, sub_topic)
 
     def __generate_and_write_template(self, template, pairs, topic, sub_topics, base_path=None, padding=""):
-        full_path = (base_path+"."+topic) if base_path else topic
+        full_path = (base_path + "." + topic) if base_path else topic
         if topic:
-            template.write(padding + "{% group "+topic+" %}\n")
+            template.write(padding + "{% group " + topic + " %}\n")
             new_padding = padding + "\t"
         else:
             new_padding = padding
         for topic_name, sub_topic in sub_topics.items():
             self.__generate_and_write_template(template, pairs, topic_name, sub_topic, full_path,
-                                               padding=new_padding+"\t")
+                                               padding=new_padding + "\t")
         for (patterns, parents, response, learn) in pairs[full_path]["pairs"]:
             template.write(new_padding + "{% block %}\n")
             if parents is None:
                 parents = []
             for parent in parents:
-                template.write(new_padding + "\t{% prev %}"+parent.pattern+"{% endprev %}\n")
+                template.write(new_padding + "\t{% prev %}" + parent.pattern + "{% endprev %}\n")
             for pattern in patterns:
-                template.write(new_padding + "\t{% client %}"+pattern.pattern+"{% endclient %}\n")
+                template.write(new_padding + "\t{% client %}" + pattern.pattern + "{% endclient %}\n")
             for res in response:
-                template.write(new_padding + "\t{% response %}"+res[0]+"{% response %}\n")
+                template.write(new_padding + "\t{% response %}" + res[0] + "{% response %}\n")
             if learn:
                 template.write(new_padding + "\t{% learn %}\n")
                 for topic_name, sub_topic in self.__get_topic_recursion(learn).items():
                     self.__generate_and_write_template(template, learn, topic_name, sub_topic,
-                                                       padding=new_padding+"\t")
+                                                       padding=new_padding + "\t")
                 template.write(new_padding + "\t{% endlearn %}\n")
             template.write(new_padding + "{% endblock %}\n")
         for res in pairs[topic]["defaults"]:
-            template.write(new_padding + "{% response %}"+res[0]+"{% response %}\n")
+            template.write(new_padding + "{% response %}" + res[0] + "{% response %}\n")
         if topic:
             template.write(padding + "{% endgroup %}\n")
 

@@ -1,7 +1,8 @@
 # Recursion
 > Recursion gives the recursive multiple response to the user query.
-> It picks the particular block matches with the user query and return the response on that block
-> Whichever block or prev tag matched to user input will be picked for the response.
+> It picks the particular block matches with the user query and return the response to that block
+> Whichever block or prev tag matched to user input first will be picked for the response.
+> If none matched response will be from the general block.
 
 ## Syntax
 ```
@@ -22,34 +23,31 @@ or `prev` tag matched with the `Please`
 Below sample, we are having the user input matching template and matched response template
 
 1. user input block
-
-
-When user type `Please`  with some text we have the response as `chat` this will be matched with the other blocks
+    When user type `Please`  with some text we have the response as `chat` this will be matched with the other blocks
 with the matching user input.
 
-```
-{% block %}
-{% client %}Please (.*){% endclient %}
-{% response %}{% chat %1 %}{% endresponse %}
-{% endblock %}
-```
+    ```
+    {% block %}
+    {% client %}Please (.*){% endclient %}
+    {% response %}{% chat %1 %}{% endresponse %}
+    {% endblock %}
+    ```
+2. response block
 
-1. response block
-
-Sample response for the above user input.
-
-```
-{% response %}Please tell me more.{% endresponse %}
-{% response %}Let's change focus a bit... Tell me about your family.{% endresponse %}
-{% response %}Can you elaborate on that?{% endresponse %}
-{% response %}Why do you say that %0?{% endresponse %}
-{% response %}I see.{% endresponse %}
-{% response %}Very interesting.{% endresponse %}
-{% response %}%0.{% endresponse %}
-{% response %}I see.  And what does that tell you?{% endresponse %}
-{% response %}How does that make you feel?{% endresponse %}
-{% response %}How do you feel when you say that?{% endresponse %}
-```
+    Sample response for the above user input.
+    
+    ```
+    {% response %}Please tell me more.{% endresponse %}
+    {% response %}Let's change focus a bit... Tell me about your family.{% endresponse %}
+    {% response %}Can you elaborate on that?{% endresponse %}
+    {% response %}Why do you say that %0?{% endresponse %}
+    {% response %}I see.{% endresponse %}
+    {% response %}Very interesting.{% endresponse %}
+    {% response %}%0.{% endresponse %}
+    {% response %}I see.  And what does that tell you?{% endresponse %}
+    {% response %}How does that make you feel?{% endresponse %}
+    {% response %}How do you feel when you say that?{% endresponse %}
+    ```
 
 #### Chat Sample
 Below example when user type `Please reply`
