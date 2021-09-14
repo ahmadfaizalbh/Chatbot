@@ -10,4 +10,5 @@ TERMINATES = {
     "pt-br": "sair",
     "he": "זהו"
 }
-LANGUAGE_SUPPORT = ["en", "de", "pt-br","he"]
+
+LANGUAGE_SUPPORT = ["en", "de", "pt-br", "he"]
