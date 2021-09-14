@@ -167,7 +167,7 @@ class Chat(object):
         self._normalizer_regex = self._compile_reflections(normalizer)
         self.__process_learn(default_pairs)
         self.__process_learn(pairs)
-        self._reflections = reflections if reflections else self.substitution.reflections
+        self._reflections = reflections or self.substitution.reflections
         self._regex = self._compile_reflections(self._reflections)
         self._memory = mapper.SessionHandler(dict, general={})
         self._conversation = mapper.SessionHandler(mapper.Conversation, general=[])
@@ -265,10 +265,12 @@ class Chat(object):
                 content = text[max(0, pos[index-1][0]): pos[index][1]+5].strip()
                 raise NameError("Invalid Tag '%s':  Error in `%s` " % (pos[index][2], content))
             index += 1
-        return index+1, (within_block["client"],
-                         within_block["prev"] if within_block["prev"] else None,
-                         within_block["response"],
-                         within_block["learn"])
+        return index + 1, (
+            within_block["client"],
+            within_block["prev"] or None,
+            within_block["response"],
+            within_block["learn"],
+        )
 
     def __group_tags(self, text, pos, groups, condition, length, index=0, name=""):
         pairs = []
@@ -451,12 +453,15 @@ class Chat(object):
         return ordered_group
 
     def _inherit(self, start_end_pair, action):
-        group = {}
-        for i, primary in enumerate(start_end_pair):
-            group[i] = []
-            for j, secondary in enumerate(start_end_pair):
-                if primary[0] < secondary[0] and primary[1] > secondary[1]:
-                    group[i].append(j)
+        group = {
+            i: [
+                j
+                for j, secondary in enumerate(start_end_pair)
+                if primary[0] < secondary[0] and primary[1] > secondary[1]
+            ]
+            for i, primary in enumerate(start_end_pair)
+        }
+
         group = self._restructure(group)
         group = self._sub_action(group, start_end_pair, action)
         return self._set_within(group)
@@ -468,7 +473,11 @@ class Chat(object):
         e_n = end_tag[1]-end_tag[0]
         start_char = response[begin_tag[0]]
         end_char = response[end_tag[1]-1]
-        if b_n != e_n or not ((start_char == "{" and end_char == "}") or (start_char == "[" and end_char == "]")):
+        if (
+            b_n != e_n
+            or (start_char != "{" or end_char != "}")
+            and (start_char != "[" or end_char != "]")
+        ):
             raise SyntaxError("invalid syntax '%s'" % response)
         if b_n == 2:
             statement = self._re_tags.findall(response[begin_tag[1]: end_tag[0]])
