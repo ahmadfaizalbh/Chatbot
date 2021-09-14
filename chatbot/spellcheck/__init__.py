@@ -56,7 +56,7 @@ class SpellChecker:
         :param words: list of str
         :return: unique set of words
         """
-        return set(w for w in words if w in self.WORDS)
+        return {w for w in words if w in self.WORDS}
 
     @staticmethod
     def edits1(word):
