@@ -36,7 +36,7 @@ setup(
     },
     include_package_data=True,
     package_data={"chatbot":  package_data},
-    classifiers = [
+    classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
         'Intended Audience :: Developers',
