@@ -249,16 +249,17 @@ Are you sure you need something
 ## Previous Tags
 
 Previous template tag keyword is `prev`. 
-Previous tag used to give the auto response based on the previous input from the user.
+Previous tag used to match previous bot message.
+A regex pattern is added between {% prev %} and {% endprev %}.
 
-It must me inside the block tag also must have at-least one client tag inside this block.
+It must be inside the block tag also must have at-least one client tag inside this block.
 
 ### Syntax
 
 ```
 {% block %}
      {% client %} ... {% endclient %}
-     {% prev %}{% endprev %}
+     {% prev %}Regex Pattern{% endprev %}
 {% endblock %}
 ```
 

@@ -4,7 +4,7 @@ from runpy import run_path
 
 from setuptools import setup
 
-version = __import__('chatbot.version').__version__
+version = run_path(join(abspath(dirname(__file__)), 'chatbot', 'version.py'))
 constants = run_path(join(abspath(dirname(__file__)), 'chatbot', 'constants.py'))
 
 LANGUAGE_SUPPORT = constants['LANGUAGE_SUPPORT']
@@ -21,7 +21,7 @@ for language in LANGUAGE_SUPPORT:
     ])
 setup(
     name=constants['NAME'],
-    version=version,
+    version=version['__version__'],
     author=constants['AUTHOR'],
     author_email=constants['AUTHOR_EMAIL'],
     url=constants['URL'],
