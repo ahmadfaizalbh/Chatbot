@@ -20,6 +20,8 @@ iso code for english is `en`. So Folder name must be **en**. Inside this folder 
 Spellcheck we have ***words.txt*** file. If the word is more than three character then it'll be compare inside the words.txt
 file for corrections.
 
+Spellchecker works during the user input process. Typos will be autocorrected before matching it with template.
+
 Each language folder have the ***substitutions.json*** for substitutions for texts. This will be working when the input
 is processed.
 
