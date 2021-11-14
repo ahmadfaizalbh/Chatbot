@@ -21,7 +21,7 @@ setup(
     author="Ahmad Faizal B H",
     author_email="ahmadfaizalbh726@gmail.com",
     url="https://github.com/ahmadfaizalbh/Chatbot",
-    description="A chatbot AI engine is a chatbot builder platform that provids both bot intelligence and"
+    description="A chatbot AI engine is a chatbot builder platform that provides both bot intelligence and"
                 " chat handler with minimal codding",
     long_description=long_description,
     long_description_content_type="text/markdown",

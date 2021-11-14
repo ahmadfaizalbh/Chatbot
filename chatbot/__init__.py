@@ -599,8 +599,12 @@ class Chat(object):
     def __chat_handler(self, session, condition, response):
         substitute = session.attr.get("substitute", True)
         session.attr["substitute"] = False
+        match = session.attr.get("match")
+        parent_match = session.attr.get("pmatch")
         response = self._respond(session, self.__handler(session, condition, response, "chat"))
         session.attr["substitute"] = substitute
+        session.attr["match"] = match
+        session.attr["pmatch"] = parent_match
         return response
 
     def __low_handler(self, session, condition, response):
