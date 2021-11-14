@@ -47,7 +47,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Natural Language :: German',
-        'Natural Language :: Portuguese (Brazil)',
+        'Natural Language :: Portuguese (Brazilian)',
         'Natural Language :: Hebrew',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
