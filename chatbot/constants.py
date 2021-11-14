@@ -12,3 +12,9 @@ TERMINATES = {
 }
 
 LANGUAGE_SUPPORT = ["en", "de", "pt-br", "he"]
+
+NAME = 'chatbotAI'
+AUTHOR = "Ahmad Faizal B H"
+AUTHOR_EMAIL = "ahmadfaizalbh726@gmail.com"
+COPYRIGHT = "Copyright (c) 2017 Ahmad Faizal B H"
+URL = "https://github.com/ahmadfaizalbh/Chatbot"

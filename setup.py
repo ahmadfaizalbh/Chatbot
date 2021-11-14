@@ -1,9 +1,13 @@
 #!/usr/bin/env python
+from os.path import join, dirname, abspath
+from runpy import run_path
 
 from setuptools import setup
 
-version = __import__('chatbot.version').__version__
-LANGUAGE_SUPPORT = __import__('chatbot.constants').LANGUAGE_SUPPORT
+version = run_path(join(abspath(dirname(__file__)), 'chatbot', 'version.py'))
+constants = run_path(join(abspath(dirname(__file__)), 'chatbot', 'constants.py'))
+
+LANGUAGE_SUPPORT = constants['LANGUAGE_SUPPORT']
 package_data = []
 
 with open("README.md", "r") as fh:
@@ -16,12 +20,12 @@ for language in LANGUAGE_SUPPORT:
         "local/%s/substitutions.json" % language
     ])
 setup(
-    name='chatbotAI',
-    version=version,
-    author="Ahmad Faizal B H",
-    author_email="ahmadfaizalbh726@gmail.com",
-    url="https://github.com/ahmadfaizalbh/Chatbot",
-    description="A chatbot AI engine is a chatbot builder platform that provids both bot intelligence and"
+    name=constants['NAME'],
+    version=version['__version__'],
+    author=constants['AUTHOR'],
+    author_email=constants['AUTHOR_EMAIL'],
+    url=constants['URL'],
+    description="A chatbot AI engine is a chatbot builder platform that provides both bot intelligence and"
                 " chat handler with minimal codding",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -35,7 +39,7 @@ setup(
         'chatbot.substitution': 'chatbot/substitution'
     },
     include_package_data=True,
-    package_data={"chatbot":  package_data},
+    package_data={"chatbot": package_data},
     classifiers=[
         'Development Status :: 4 - Beta',
         'Environment :: Console',
@@ -51,6 +55,6 @@ setup(
         'Topic :: Communications :: Chat',
     ],
     install_requires=[
-          'requests',
-      ]
+        'requests',
+    ]
 )
