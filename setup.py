@@ -8,7 +8,7 @@ from setuptools import setup
 version = run_path(join(abspath(dirname(__file__)), 'chatbot', 'version.py'))
 constants = run_path(join(abspath(dirname(__file__)), 'chatbot', 'constants.py'))
 LANGUAGE_SUPPORT = constants['LANGUAGE_SUPPORT']
-package_data = []
+package_data = ["media/send.png"]
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
