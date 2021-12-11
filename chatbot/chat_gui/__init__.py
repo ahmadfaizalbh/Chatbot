@@ -29,6 +29,8 @@ class ChatGUI:
         self.user_input_box.bind("<Return>", self.user_input_handler)
         self.user_input_box.bind("<Shift_L><Return>", self.user_input_box_handler)
         send_image = PhotoImage(file=path.join(self.data_path, "send.png"))
+        self.bot_image = PhotoImage(file=path.join(self.data_path, "bot.png"))
+        self.user_image = PhotoImage(file=path.join(self.data_path, "user.png"))
 
         self.send_button = Button(self.root, image=send_image,
                                   command=lambda: self.user_input_handler(None))
@@ -44,7 +46,7 @@ class ChatGUI:
         color = "black"  # if bot else "white"
         frame = Frame(self.canvas, bg=bg_color)
         self.last_bubble = frame
-        widget = self.canvas.create_window(50 if bot else 750, 440, window=frame, anchor='nw' if bot else 'ne')
+        widget = self.canvas.create_window(50 if bot else 700, 440, window=frame, anchor='nw' if bot else 'ne')
 
         chat_label = Label(frame, text=message, wraplength=600, justify=LEFT if bot else RIGHT, font=("Helvetica", 12),
                            bg=bg_color, fg=color)
@@ -52,12 +54,20 @@ class ChatGUI:
 
         self.root.update_idletasks()
         self.canvas.create_polygon(self.draw_triangle(widget, bot), fill=bg_color, outline=bg_color)
+        self.add_icon(widget, bot)
+
+    def add_icon(self,  widget, bot=True):
+        x1, y1, x2, y2 = self.canvas.bbox(widget)
+        if bot:
+            self.canvas.create_image(x1-72, y2, image=self.bot_image, anchor=W)
+        else:
+            self.canvas.create_image(x2+72, y2, image=self.user_image, anchor=E)
 
     def draw_triangle(self, widget, bot=True):
         x1, y1, x2, y2 = self.canvas.bbox(widget)
         if bot:
             return x1, y2 - 10, x1 - 10, y2, x1, y2
-        return 750, y2 - 10, 750, y2, 760, y2
+        return 700, y2 - 10, 700, y2, 710, y2
 
     def add_user_message(self, message):
         self.user_input_box.config(state=DISABLED)
