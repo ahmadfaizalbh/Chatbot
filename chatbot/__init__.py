@@ -8,7 +8,6 @@ from .spellcheck import SpellChecker
 from . import version
 from . import mapper
 from .constants import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT  # noqa: F401
-from .chat_gui import ChatGUI
 
 try:
     from urllib import quote
@@ -967,8 +966,31 @@ class Chat(object):
         """
         return self._say(mapper.Session(self, session_id), message)
 
+    def terminal_chat(self, first_question, terminate, session):
+        """
+
+        Terminal chat window
+
+        :type first_question: str
+        :param first_question: Start up message
+        :type terminate: str
+        :param terminate: Conversation termination command
+        :type session: Session
+        :param session: Current User session when used for multi user scenario
+        """
+        print(first_question)
+        input_sentence = ""
+        while input_sentence != terminate:
+            input_sentence = terminate
+            try:
+                input_sentence = input_reader("> ")
+            except EOFError:
+                print(input_sentence)
+            if input_sentence:
+                print(self._say(session, input_sentence))
+
     # Hold a conversation with a chat bot
-    def converse(self, first_question=None, terminate="quit", session_id="general"):
+    def converse(self, first_question=None, terminate="quit", chat_gui=True, session_id="general"):
         """
         Conversation initiator
 
@@ -976,10 +998,13 @@ class Chat(object):
         :param first_question: Start up message
         :type terminate: str
         :param terminate: Conversation termination command
-        :type session: str
-        :param session: Current User session when used for multi user scenario
+        :param chat_gui: bool
+        :type chat_gui: terminal or tkinter chat_gui
+        :type session_id: str
+        :param session_id: Current User session when used for multi user scenario
         :rtype: str
         """
+
         session = mapper.Session(self, session_id)
         if first_question:
             session.conversation.append_bot_message(first_question)
@@ -987,11 +1012,19 @@ class Chat(object):
         def process_message(message):
             return self._say(session, message)
 
-        ChatGUI(process_message, first_question)
+        if not chat_gui:
+            self.terminal_chat(first_question, terminate, session)
+            return
+
+        try:
+            from .chat_gui import ChatGUI
+            ChatGUI(process_message, first_question)
+        except Exception:
+            self.terminal_chat(first_question, terminate, session)
 
 
-def demo(first_question=None, language="en", **kwargs):
+def demo(first_question=None, language="en", chat_gui=True, **kwargs):
     if not first_question:
         first_question = FIRST_QUESTIONS.get(language, FIRST_QUESTIONS["en"])
     terminate = TERMINATES.get(language, TERMINATES["en"])
-    Chat(language=language, **kwargs).converse(first_question, terminate=terminate)
+    Chat(language=language, **kwargs).converse(first_question, terminate=terminate, chat_gui=chat_gui)
