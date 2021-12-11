@@ -29,7 +29,7 @@ class ChatGUI:
         self.user_input_box.bind("<Return>", self.user_input_handler)
         self.user_input_box.bind("<Shift_L><Return>", self.user_input_box_handler)
         send_image = PhotoImage(file=path.join(self.data_path, "send.png"))
-        self.bot_image = PhotoImage(file=path.join(self.data_path, "bot.png"))
+        self.bot_image = PhotoImage(file=path.join(self.data_path, "robot.png"))
         self.user_image = PhotoImage(file=path.join(self.data_path, "user.png"))
 
         self.send_button = Button(self.root, image=send_image,
