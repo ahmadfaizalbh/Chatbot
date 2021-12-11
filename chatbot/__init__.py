@@ -3,6 +3,7 @@ import random
 import requests
 import json
 from os import path
+from functools import partial
 from .substitution import Substitution
 from .spellcheck import SpellChecker
 from . import version
@@ -966,17 +967,18 @@ class Chat(object):
         """
         return self._say(mapper.Session(self, session_id), message)
 
-    def terminal_chat(self, first_question, terminate, session):
+    @staticmethod
+    def terminal_chat(callback, first_question, terminate):
         """
 
         Terminal chat window
 
+        :type callback: function
+        :param callback: Callback message processor
         :type first_question: str
         :param first_question: Start up message
         :type terminate: str
         :param terminate: Conversation termination command
-        :type session: Session
-        :param session: Current User session when used for multi user scenario
         """
         print(first_question)
         input_sentence = ""
@@ -987,19 +989,20 @@ class Chat(object):
             except EOFError:
                 print(input_sentence)
             if input_sentence:
-                print(self._say(session, input_sentence))
+                print(callback(input_sentence))
 
     # Hold a conversation with a chat bot
-    def converse(self, first_question=None, terminate="quit", chat_gui=True, session_id="general"):
+    def converse(self, first_question=None, terminate="quit", gui=None, session_id="general"):
         """
         Conversation initiator
+
 
         :type first_question: str
         :param first_question: Start up message
         :type terminate: str
         :param terminate: Conversation termination command
-        :param chat_gui: bool
-        :type chat_gui: terminal or tkinter chat_gui
+        :param gui: bool
+        :type gui: terminal or tkinter gui
         :type session_id: str
         :param session_id: Current User session when used for multi user scenario
         :rtype: str
@@ -1009,22 +1012,21 @@ class Chat(object):
         if first_question:
             session.conversation.append_bot_message(first_question)
 
-        def process_message(message):
-            return self._say(session, message)
+        if gui is False:
+            chat_handler = self.terminal_chat
+        else:
+            try:
+                from .chat_gui import ChatGUI as chat_handler
+            except ImportError:
+                if gui:
+                    raise ImportError('tkinter is missing. Please install tkinter.')
+                chat_handler = self.terminal_chat
 
-        if not chat_gui:
-            self.terminal_chat(first_question, terminate, session)
-            return
-
-        try:
-            from .chat_gui import ChatGUI
-            ChatGUI(process_message, first_question)
-        except Exception:
-            self.terminal_chat(first_question, terminate, session)
+        chat_handler(partial(self._say, session), first_question, terminate)
 
 
-def demo(first_question=None, language="en", chat_gui=True, **kwargs):
+def demo(first_question=None, language="en", gui=None, **kwargs):
     if not first_question:
         first_question = FIRST_QUESTIONS.get(language, FIRST_QUESTIONS["en"])
     terminate = TERMINATES.get(language, TERMINATES["en"])
-    Chat(language=language, **kwargs).converse(first_question, terminate=terminate, chat_gui=chat_gui)
+    Chat(language=language, **kwargs).converse(first_question, terminate=terminate, gui=gui)

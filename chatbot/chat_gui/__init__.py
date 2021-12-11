@@ -7,11 +7,12 @@ from time import sleep
 
 
 class ChatGUI:
-    def __init__(self, callback, first_message="welcome to ChatBotAI"):
+    def __init__(self, callback, first_message="welcome to ChatBotAI", terminate="quit"):
         self.data_path = path.join(path.dirname(path.dirname(path.abspath(__file__))), "media")
         self.last_bubble = None
         self.thread_event = Event()
         self.callback = callback
+        self.terminate = terminate
         self.root = Tk()
         self.root.title("Sample ChatBot")
         # this removes the maximize
@@ -25,7 +26,7 @@ class ChatGUI:
 
         self.canvas.configure(yscrollcommand=self.canvas_scroll_y.set)
         self.user_input_box = Entry(self.root)
-        self.user_input_box.grid(row=1, column=0, pady=10, ipady=8, ipadx=299, sticky=W)
+        self.user_input_box.grid(row=1, column=0, padx=5, pady=10, ipady=8, ipadx=290, sticky=W)
         self.user_input_box.bind("<Return>", self.user_input_handler)
         self.user_input_box.bind("<Shift_L><Return>", self.user_input_box_handler)
         send_image = PhotoImage(file=path.join(self.data_path, "send.png"))
@@ -56,12 +57,12 @@ class ChatGUI:
         self.canvas.create_polygon(self.draw_triangle(widget, bot), fill=bg_color, outline=bg_color)
         self.add_icon(widget, bot)
 
-    def add_icon(self,  widget, bot=True):
+    def add_icon(self, widget, bot=True):
         x1, y1, x2, y2 = self.canvas.bbox(widget)
         if bot:
-            self.canvas.create_image(x1-72, y2, image=self.bot_image, anchor=W)
+            self.canvas.create_image(x1 - 72, y2, image=self.bot_image, anchor=W)
         else:
-            self.canvas.create_image(x2+72, y2, image=self.user_image, anchor=E)
+            self.canvas.create_image(x2 + 72, y2, image=self.user_image, anchor=E)
 
     def draw_triangle(self, widget, bot=True):
         x1, y1, x2, y2 = self.canvas.bbox(widget)
@@ -96,7 +97,7 @@ class ChatGUI:
         if not message:
             return
 
-        if message == 'quit':
+        if message == self.terminate:
             self.root.destroy()
             return
 
