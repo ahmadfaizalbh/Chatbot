@@ -19,6 +19,12 @@ for language in LANGUAGE_SUPPORT:
         "local/%s/words.txt" % language,
         "local/%s/substitutions.json" % language
     ])
+package_dir = {
+        'chatbot': 'chatbot',
+        'chatbot.spellcheck': 'chatbot/spellcheck',
+        'chatbot.substitution': 'chatbot/substitution',
+        'chatbot.chat_gui': 'chatbot/chat_gui'
+    }
 setup(
     name='chatbotAI',
     version=version['__version__'],
@@ -29,15 +35,11 @@ setup(
                 " chat handler with minimal codding",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=['chatbot', 'chatbot.spellcheck', 'chatbot.substitution'],
+    packages=list(package_dir.keys()),
     license='MIT',
     keywords='chatbot ai engine and chat builder platform',
     platforms=["Windows", "Linux", "Solaris", "Mac OS-X", "Unix"],
-    package_dir={
-        'chatbot': 'chatbot',
-        'chatbot.spellcheck': 'chatbot/spellcheck',
-        'chatbot.substitution': 'chatbot/substitution'
-    },
+    package_dir=package_dir,
     include_package_data=True,
     package_data={"chatbot":  package_data},
     classifiers=[

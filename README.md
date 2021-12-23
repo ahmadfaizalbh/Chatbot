@@ -12,6 +12,8 @@ numerous features like learn, memory, conditional switch, topic-based
 conversation handling, etc.
 
 
+![Demo GUI](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo_gui.gif)
+
 ![Demo](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo.gif)
 ![Clothing assistance](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/clothing.gif)
 ![Remainder](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/reminder.gif)
