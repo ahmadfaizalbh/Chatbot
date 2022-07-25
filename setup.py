@@ -28,8 +28,8 @@ package_dir = {
 setup(
     name='chatbotAI',
     version=version['__version__'],
-    author="Ahmad Faizal B H",
-    author_email="ahmadfaizalbh726@gmail.com",
+    author="Sam",
+    author_email="emilyrosedolan@gmail.com@gmail.com",
     url="https://github.com/ahmadfaizalbh/Chatbot",
     description="A chatbot AI engine is a chatbot builder platform that provides both bot intelligence and"
                 " chat handler with minimal codding",
