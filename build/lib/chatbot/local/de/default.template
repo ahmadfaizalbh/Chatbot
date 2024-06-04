@@ -1,0 +1,299 @@
+{% block %}
+    {% client %}Bitte (.*){% endclient %}
+    {% response %}{% chat %1 %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Wie heißt du|Wie ist dein Name{% endclient %}
+    {% response %}Mein Name ist ChatBot{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Nenn mich (.*){% endclient %}
+    {% response %}Ich werde mich daran erinnern {name:%1}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Wie ist mein Name{% endclient %}
+    {% response %}{%if {name} %}Dein Name ist {name}{% else %}Ich kenne deinen Namen nicht. Verrätst zu ihn mir?{% endif %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(Ich bin |Ich heiße |Mein Name ist )?(.*){% endclient %}
+    {% prev %}(.*)Verrätst zu ihn mir{% endprev %}
+    {% response %}Danke {name:%2}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Kennst du mich noch?|Erinnerst du dich an meinen Namen?{% endclient %}
+    {% response %}{% if {name} %}Ja {name}{% else %}Nein,{% chat Wie ist mein Name %}{% endif %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich brauche(.*){% endclient %}
+    {% response %}Warum brauchst du %1?{% endresponse %}
+    {% response %}Würde es dir wirklich helfen %1 zu bekommen?{% endresponse %}
+    {% response %}Bist du sicher, dass du %1 brauchst?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Warum (.*) du nicht?{% endclient %}
+    {% response %}Glaubst du wirklich ich %1 nicht?{% endresponse %}
+    {% response %}Vielleicht werde ich irgendwann %1.{% endresponse %}
+    {% response %}Willst du wirklich, dass ich %1?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(Ich (bin|fühle mich) )?(sehr )?(.*){% endclient %}
+    {% prev %}.*wie geht es dir{% endprev %}
+    {% response %}{% if {%low %4 %} == okay | {%low %4 %} == gut | {%low %4 %} == fröhlich %}  Schön zu wissen, dass du %4 bist. Was noch? {% else %} Warum fühlst du dich %4?{% endif %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Warum kann ich nicht (.*){% endclient %}
+    {% response %}Meinst du du solltest %1 können?{% endresponse %}
+    {% response %}Wenn du %1 könntest, was würdest du tun?{% endresponse %}
+    {% response %}Ich weiß nicht... warum kannst du nicht %1?{% endresponse %}
+    {% response %}Hast du es denn wirklich versucht?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich kann nicht (.*){% endclient %}
+    {% response %}Woher weißt du, dass du nicht %1 kannst?{% endresponse %}
+    {% response %}Vielleicht könntest du %1, wenn du es versucht hättest.{% endresponse %}
+    {% response %}Was wäre nötig, damit du %1 könntest?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich bin (.*){% endclient %}
+    {% response %}Bist du zu mir gekommen, weil du %1 bist?{% endresponse %}
+    {% response %}Wie lange bist du schon %1?{% endresponse %}
+    {% response %}Wie fühlst du dich damit, %1 zu sein?{% endresponse %}
+    {% response %}Wie fühlt es sich an %1 zu sein?{% endresponse %}
+    {% response %}Gefällt es dir %1 zu sein?{% endresponse %}
+    {% response %}Warum erzählst du mir, dass du %1 bist?{% endresponse %}
+    {% response %}Warum glaubst du, dass du %1 bist?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Bist du (.*){% endclient %}
+    {% response %}Warum spielt es eine Rolle, ob ich %1 bin?{% endresponse %}
+    {% response %}Würde es dir besser gefallen, wäre ich nicht %1?{% endresponse %}
+    {% response %}Vielleicht glaubst du, dass ich %1 bin.{% endresponse %}
+    {% response %}Vielleicht bin ich %1 -- Was denkst du?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Was (.*){% endclient %}
+    {% response %}Warum fragst du?{% endresponse %}
+    {% response %}Wie würde dir eine Antwort darauf helfen?{% endresponse %}
+    {% response %}Was denkst du?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Wie (.*){% endclient %}
+    {% response %}Was würdest du vorschlagen?{% endresponse %}
+    {% response %}Vielleicht kannst du dir die Frage selbst beantworten.{% endresponse %}
+    {% response %}Was ist der wirkliche Grund für diese Frage?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Weil (.*){% endclient %}
+    {% response %}Ist das der tatsächliche Grund?{% endresponse %}
+    {% response %}Welche anderen Gründe könnte es geben?{% endresponse %}
+    {% response %}Gilt diese Begründung nicht für alles andere auch?{% endresponse %}
+    {% response %}Wenn %1, was ist sonst noch der Fall?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) entschuldigung (.*){% endclient %}
+    {% response %}Häufig bedarf es keiner Entschuldigung.{% endresponse %}
+    {% response %}Wie fühlst du dich, wenn du dich entschuldigst?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Hallo(.*){% endclient %}
+    {% response %}Hallo... Schön, dass du vorbeischaust.{% endresponse %}
+    {% response %}He da... Wie geht es dir heute?{% endresponse %}
+    {% response %}Hallo, wie fühlst du dich?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich glaube (.*){% endclient %}
+    {% response %}%1, bezweifelst du das?{% endresponse %}
+    {% response %}Glaubst du das wirklich?{% endresponse %}
+    {% response %}Du sagst %1, aber bist du dir sicher?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) Freund (.*){% endclient %}
+    {% response %}Erzähle mir mehr über deine Freunde{% endresponse %}
+    {% response %}Wenn du an einen Freund denkst, was genau schwebt dir dann vor?{% endresponse %}
+    {% response %}Warum erzählst du mir nicht etwas über deine Freunde aus der Kindheit?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ja{% endclient %}
+    {% response %}Du scheinst dir da sehr sicher zu sein.{% endresponse %}
+    {% response %}Okay, aber kannst du das vielleicht noch ein bisschen ausführen?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) Computer(.*){% endclient %}
+    {% response %}Sprichst du wirklich mit mir?{% endresponse %}
+    {% response %}Ist es komisch für dich mit einem Computer zu sprechen?{% endresponse %}
+    {% response %}Was für einen Eindruck hast du von Computern?{% endresponse %}
+    {% response %}Fühlst du dich von Maschinen bedroht?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ist es (.*){% endclient %}
+    {% response %}Glaubst du es ist %1?{% endresponse %}
+    {% response %}Vielleicht ist es wirklich %1 -- was denkst du?{% endresponse %}
+    {% response %}Wenn es %1 wäre, was würdest du tun?{% endresponse %}
+    {% response %}Es kann gut sein, dass es %1 ist.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Es ist (.*){% endclient %}
+    {% response %}Du scheinst dir da sehr sicher.{% endresponse %}
+    {% response %}Wenn ich dir erzählen würde, dass es wahrscheinlich nicht %1 ist, wie würdest du dich fühlen?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Kannst du (.*){% endclient %}
+    {% response %}Was lässt dich glauben, dass ich nicht %1 kann?{% endresponse %}
+    {% response %}Wenn ich %1 könnte, was wäre dann?{% endresponse %}
+    {% response %}Warum fragst du mich, ob ich %1 kann?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Kann ich (.*){% endclient %}
+    {% response %}Vielleicht willst du garnicht %1.{% endresponse %}
+    {% response %}Würdest du gerne %1 können?{% endresponse %}
+    {% response %}Wenn du %1 könntest, würdest du es tun?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Du bist (.*){% endclient %}
+    {% response %}Warum denkst du, dass ich %1 bin?{% endresponse %}
+    {% response %}Gefällt es dir zu glauben, dass ich %1 bin?{% endresponse %}
+    {% response %}Vielleicht hättest du gerne, dass ich %1 bin.{% endresponse %}
+    {% response %}Vielleicht sprichst du in Wirklichkeit von dir selbst?{% endresponse %}
+    {% response %}Sprechen wir jetzt über dich oder mich?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich (.*) nicht{% endclient %}
+    {% response %}%1 du wirklich nicht?{% endresponse %}
+    {% response %}Warum %1 du nicht?{% endresponse %}
+    {% response %}Möchtest du %1?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich fühle (.*){% endclient %}
+    {% response %}Gut, erzähle mir mehr über deine Gefühle.{% endresponse %}
+    {% response %}Fühlst du dich oft %1?{% endresponse %}
+    {% response %}Wann fühlst du dich gewöhnlich %1?{% endresponse %}
+    {% response %}Wenn du dich %1 fühlst, was machst du dann?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich habe (.*){% endclient %}
+    {% response %}Warum erzählst du mir, dass du %1 hast?{% endresponse %}
+    {% response %}Hast du wirklich %1?{% endresponse %}
+    {% response %}Jetzt wo du %1 hast, was wirst du als nächstes tun?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich würde (.*){% endclient %}
+    {% response %}Kannst du erklären warum du %1 würdest?{% endresponse %}
+    {% response %}Warum würdest du %1?{% endresponse %}
+    {% response %}Wer weiß noch, dass du %1 würdest?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Gibt es (.*){% endclient %}
+    {% response %}Glaubst du, dass es %1 gibt?{% endresponse %}
+    {% response %}Es ist sehr wahrscheinlich, dass es %1 gibt.{% endresponse %}
+    {% response %}Hättest du gerne, dass es %1 gibt?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Mein (.*){% endclient %}
+    {% response %}Alles klar, dein %1.{% endresponse %}
+    {% response %}Warum sagst du, dass dein %1?{% endresponse %}
+    {% response %}Wenn dein %1, wie fühlst du dich?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Du (.*){% endclient %}
+    {% response %}Wir sollten über dich sprechen, nicht über mich.{% endresponse %}
+    {% response %}Warum sagst du das über mich?{% endresponse %}
+    {% response %}Warum kümmert es dich, dass ich %1?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Warum (.*){% endclient %}
+    {% response %}Warum erzählst du mir nicht den Grund dafür?{% endresponse %}
+    {% response %}Warum glaubst du %1?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ich (will|möchte) (.*){% endclient %}
+    {% response %}Was würdest du sagen, wenn ich %1 hätte?{% endresponse %}
+    {% response %}Warum willst du %1?{% endresponse %}
+    {% response %}Was würdest du tun, wenn du %1 hättest?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) (Mutter|Mama)(.*){% endclient %}
+    {% response %}Erzähl mir mehr von deiner Mutter.{% endresponse %}
+    {% response %}Wie ist dein Verhältnis zu deiner Mutter?{% endresponse %}
+    {% response %}Was fühlst du, wenn du an deine Mutter denkst?{% endresponse %}
+    {% response %}Wie wirkt sich das heute auf deine Stimmung aus?{% endresponse %}
+    {% response %}Gute interfamiliäre Beziehungen sind wichtig.{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) (Vater|Papa)(.*){% endclient %}
+    {% response %}Erzähl mir mehr von deinem Vater.{% endresponse %}
+    {% response %}Was für Gefühle löst der Gedanke an deinen Vater in dir aus?{% endresponse %}
+    {% response %}Wie wirkt sich die Beziehung zu deinem Vater auf deinen heutigen Gemütszustand aus?{% endresponse %}
+    {% response %}Fällt es dir schwer dich zu deiner Familie zu bekennen?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) Kind(.*){% endclient %}
+    {% response %}Hattest du als Kind enge Freunde?{% endresponse %}
+    {% response %}Was ist deine schönste Kindheitserinnerung?{% endresponse %}
+    {% response %}Erinnerst du dich an Träume oder Alpträume aus deiner Kindheit?{% endresponse %}
+    {% response %}Haben dich andere Kinder manchmal geärgert?{% endresponse %}
+    {% response %}Wie glaubst du wirkt sich deine Kindheit auf deine heutigen Gefühle aus?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*)\?{% endclient %}
+    {% response %}Warum fragst du das?{% endresponse %}
+    {% response %}Bitte beantworte dir diese Frage selbst.{% endresponse %}
+    {% response %}Vielleicht liegt die Antwort auf diese Frage tief in deinem Inneren verborgen?{% endresponse %}
+    {% response %}Warum erzählst du mir das nicht?{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}Ende{% endclient %}
+    {% response %}Danke, dass du mit mir geredet hast.{% endresponse %}
+    {% response %}Tschüss.{% endresponse %}
+    {% response %}Danke, hab einen schönen Tag!{% endresponse %}
+{% endblock %}
+
+{% response %}Please tell me more.{% endresponse %}
+{% response %}Let's change focus a bit... Tell me about your family.{% endresponse %}
+{% response %}Can you elaborate on that?{% endresponse %}
+{% response %}Why do you say that %0?{% endresponse %}
+{% response %}I see.{% endresponse %}
+{% response %}Very interesting.{% endresponse %}
+{% response %}%0.{% endresponse %}
+{% response %}I see.  And what does that tell you?{% endresponse %}
+{% response %}How does that make you feel?{% endresponse %}
+{% response %}How do you feel when you say that?{% endresponse %}

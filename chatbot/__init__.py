@@ -6,21 +6,27 @@ from os import path
 from functools import partial
 from .substitution import Substitution
 from .spellcheck import SpellChecker
+from .load_templates import Load_templates
 from . import version
 from . import mapper
 from .constants import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT  # noqa: F401
 
+
+#importing quote to convert string to url
 try:
     from urllib import quote
 except ImportError:
     from urllib.parse import quote
 
+#getting the correct input function to work on both python2 and python3
 try:
     input_reader = raw_input
 except NameError:
     input_reader = input
 
+#specifying the version of chatbot
 __version__ = version.__version__
+
 
 DEFAULT_ATTRIBUTE = {"match": None, "pmatch": None, "_quote": False, "substitute": True}
 RE_TAG_PARENTHESIS = re.compile(r'{%?|%?}|\[|\]')
@@ -1030,3 +1036,14 @@ def demo(first_question=None, language="en", gui=None, **kwargs):
         first_question = FIRST_QUESTIONS.get(language, FIRST_QUESTIONS["en"])
     terminate = TERMINATES.get(language, TERMINATES["en"])
     Chat(language=language, **kwargs).converse(first_question, terminate=terminate, gui=gui)
+
+#adding load_templates
+class load_templates():
+    def __init__(self, main_folder=None, language=None):
+        instance = Load_templates(main_folder, language)
+        self.template_files = instance.template_files
+
+"""
+#example usage
+template = load_templates(language = "de")
+"""

@@ -23,7 +23,8 @@ package_dir = {
         'chatbot': 'chatbot',
         'chatbot.spellcheck': 'chatbot/spellcheck',
         'chatbot.substitution': 'chatbot/substitution',
-        'chatbot.chat_gui': 'chatbot/chat_gui'
+        'chatbot.chat_gui': 'chatbot/chat_gui',
+        'chatbot.load_templates' : 'chatbot/load_template'
     }
 setup(
     name='chatbotAI',
