@@ -1,0 +1,301 @@
+{% block %}
+    {% client %}אנא (.*) {% endclient %}
+    {% response %}{% chat %1 %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}מה השם שלך {% endclient %}
+    {% response %}השם שלי זה ChatBot{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}תקרא לי (.*) {% endclient %}
+    {% response %}אני יזכור את זה {name:%1} {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}מה השם שלי {% endclient %}
+    {% response %}{% if {name} %}השם שלך זה {name}{% else %}אני לא יודע מה השם שלך {% endif %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}השם שלי זה? (.*) {% endclient %}
+    {% prev%}(.*) אתה יכול לומר לי מה השם שלך {% endprev%}
+    {% response %}תודה לך {name:%2} {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}האם אתה (יודע|זוכר) את השם שלי {% endclient %}
+    {% response %}{% if {name} %}כן, אני יודע {name}{% else %}לא,{% chat מה השם שלי %}{% endif %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני צריך (.*) {% endclient %}
+    {% response %}למה אתה צריך %1? {% endresponse %}
+    {% response %}האם זה באמת יעזור לך לקבל %1? {% endresponse %}
+    {% response %}אתה בטוח שאתה צריך %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}למה שלא (.*) {% endclient %}
+    {% response %}אתה באמת חושב שאני לא %1? {% endresponse %}
+    {% response %}אולי בסופו של דבר אעשה %1. {% endresponse %}
+    {% response %}אתה באמת רוצה שאעשה %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(אני מרגיש)? (מרגיש)? (בטוח ש)? (.*) {% endclient %}
+    {% prev%}. * מה שלומך {% endprev%}
+    {% response %}{% if {%low %4 %} == בסדר | {%low %4 %} == טוב | {%low %4 %} == מצויין | {%low %4 %} == שמח %}  נחמד לדעת שאתה %4. מה עוד? {% else %} למה אתה מרגיש %4 {% endif %}{% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}למה אני לא יכול (.*) {% endclient %}
+    {% response %}האם אתה חושב שאתה אמור להיות מסוגל %1? {% endresponse %}
+    {% response %}אם אתה יכול %1, מה היית עושה? {% endresponse %}
+    {% response %}אני לא יודע למה אתה לא יכול %1? {% endresponse %}
+    {% response %}האם באמת ניסית? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני לא יכול (.*) {% endclient %}
+    {% response %}איך אתה יודע שאתה לא יכול %1? {% endresponse %}
+    {% response %}אולי תוכל %1 אם תנסה. {% endresponse %}
+    {% response %}מה היית עושה אם %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני (.*) {% endclient %}
+    {% response %}הגעת אלי כי אתה %1? {% endresponse %}
+    {% response %}כמה זמן היית %1? {% endresponse %}
+    {% response %}איך אתה מרגיש להיות %1? {% endresponse %}
+    {% response %}איך להיות %1 גורם לך להרגיש? {% endresponse %}
+    {% response %}האם אתה נהנה להיות %1? {% endresponse %}
+    {% response %}למה אתה אומר לי שאתה %1? {% endresponse %}
+    {% response %}למה אתה חושב שאתה %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}האם אתה (.*) {% endclient %}
+    {% response %}מדוע זה משנה אם אני %1? {% endresponse %}
+    {% response %}האם אתה מעדיף אם לא הייתי %1? {% endresponse %}
+    {% response %}אולי אתה מאמין שאני %1. {% endresponse %}
+    {% response %}יכול להיות שאני %1 מה אתה חושב? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}מה (.*) {% endclient %}
+    {% response %}מדוע אתה שואל? {% endresponse %}
+    {% response %}כיצד תשובה לכך תעזור לך? {% endresponse %}
+    {% response %}מה אתה חושב? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}כיצד (.*) {% endclient %}
+    {% response %}איך אתה מניח? {% endresponse %}
+    {% response %}אולי תוכל לענות על שאלה משלך. {% endresponse %}
+    {% response %}מה אתה באמת שואל? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}בגלל (.*) {% endclient %}
+    {% response %}האם זו הסיבה האמיתית? {% endresponse %}
+    {% response %}אילו סיבות נוספות יכולות להיות? {% endresponse %}
+    {% response %}האם הסיבה הזו חלה על משהו אחר? {% endresponse %}
+    {% response %}אם%1, מה עוד חייב להיות נכון? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) סליחה (.*){% endclient %}
+    {% response %}יש פעמים רבות שאין צורך בהתנצלות. {% endresponse %}
+    {% response %}אילו תחושות יש לך כשאתה מתנצל? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}שלום (.*) {% endclient %}
+    {% response %}שלום ... אני שמח שתוכל להגיע עד היום. {% endresponse %}
+    {% response %}שלום ... מה שלומך היום? {% endresponse %}
+    {% response %}שלום, איך אתה מרגיש היום? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני חושב (.*) {% endclient %}
+    {% response %}האם אתה מטיל ספק ב %1? {% endresponse %}
+    {% response %}האם אתה באמת חושב כך? {% endresponse %}
+    {% response %}אבל אתה לא בטוח %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) חבר (.*) {% endclient %}
+    {% response %}ספר לי עוד על החברים שלך. {% endresponse %}
+    {% response %}כשאתה חושב על חבר, מה עולה בדעתך? {% endresponse %}
+    {% response %}מדוע אתה לא מספר לי על חבר ילדות? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}כן {% endclient %}
+    {% response %}אתה נראה די בטוח. {% endresponse %}
+    {% response %}בסדר, אבל אתה יכול לפרט קצת? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) מחשב(.*){% endclient %}
+    {% response %}אתה באמת מדבר עליי? {% endresponse %}
+    {% response %}נראה שזה מוזר לדבר עם מחשב? {% endresponse %}
+    {% response %}איך מחשבים גורמים לך להרגיש? {% endresponse %}
+    {% response %}האם אתה מרגיש מאוים ממחשבים? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}האם זה (.*) {% endclient %}
+    {% response %}האם אתה חושב שזה %1? {% endresponse %}
+    {% response %}אולי זה %1 מה אתה חושב? {% endresponse %}
+    {% response %}אם זה היה %1, מה היית עושה? {% endresponse %}
+    {% response %}בהחלט יכול להיות ש %1. {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}זהו (.*) {% endclient %}
+    {% response %}אתה נראה מאוד בטוח. {% endresponse %}
+    {% response %}אם הייתי אומר לך שזה כנראה לא %1, מה היית מרגיש? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}האם אתה יכול (.*) {% endclient %}
+    {% response %}מה גורם לך לחשוב שאני לא יכול%1? {% endresponse %}
+    {% response %}אם אוכל%1, אז מה? {% endresponse %}
+    {% response %}מדוע אתה שואל אם אני יכול%1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}האם אני יכול (.*) {% endclient %}
+    {% response %}אולי אתה לא רוצה%1. {% endresponse %}
+    {% response %}האם אתה רוצה להיות מסוגל%1? {% endresponse %}
+    {% response %}אם היית יכול%1, נכון? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אתה (.*) {% endclient %}
+    {% response %}מדוע אתה חושב שאני %1? {% endresponse %}
+    {% response %}האם זה נעים לך לחשוב שאני %1? {% endresponse %}
+    {% response %}אולי תרצה שאהיה %1. {% endresponse %}
+    {% response %}אולי אתה באמת מדבר על עצמך? {% endresponse %}
+    {% response %}אנחנו מדברים עליכם, או עלי? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני לא (.*) {% endclient %}
+    {% response %}אתה לא באמת %1? {% endresponse %}
+    {% response %}מדוע אינך %1? {% endresponse %}
+    {% response %}האם אתה רוצה %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני מרגיש (.*) {% endclient %}
+    {% response %}טוב, ספר לי עוד על התחושות האלה. {% endresponse %}
+    {% response %}האם אתה מרגיש לעיתים קרובות %1? {% endresponse %}
+    {% response %}מתי אתה בדרך כלל מרגיש %1? {% endresponse %}
+    {% response %}כשאתה מרגיש %1, מה אתה עושה? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}יש לי (.*) {% endclient %}
+    {% response %}מדוע אתה אומר לי שיש לך %1? {% endresponse %}
+    {% response %}האם אתה באמת %1? {% endresponse %}
+    {% response %}עכשיו שיש לך %1, מה תעשה בהמשך? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}הייתי (.*) {% endclient %}
+    {% response %}האם תוכל להסביר מדוע %1? {% endresponse %}
+    {% response %}למה ש%1? {% endresponse %}
+    {% response %}מי עוד יודע שהיית %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}האם יש (.*) {% endclient %}
+    {% response %}האם אתה חושב שיש %1? {% endresponse %}
+    {% response %}סביר להניח שיש %1. {% endresponse %}
+    {% response %}האם תרצה שיהיה %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}שלי (.*) {% endclient %}
+    {% response %}אני מבין, %1 שלך. {% endresponse %}
+    {% response %}מדוע אתה אומר ש %1 שלך? {% endresponse %}
+    {% response %}כאשר אתה %1, מה אתה מרגיש? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אתה (.*) {% endclient %}
+    {% response %}אנחנו צריכים לדון בך, לא עלי. {% endresponse %}
+    {% response %}למה אתה אומר את זה עלי? {% endresponse %}
+    {% response %}מדוע אכפת לך אם אני %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(מדוע|למה) (.*) {% endclient %}
+    {% response %}מדוע אתה לא אומר לי את הסיבה שבגללה %1? {% endresponse %}
+    {% response %}מדוע לדעתך %1? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני רוצה (.*) {% endclient %}
+    {% response %}מה תעשה אם תקבל %1? {% endresponse %}
+    {% response %}מדוע אתה רוצה %1? {% endresponse %}
+    {% response %}מה היית עושה אם תקבל %1? {% endresponse %}
+    {% response %}אם קיבלת %1, מה היית עושה? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) אמא (.*) {% endclient %}
+    {% response %}ספר לי עוד על אמא שלך. {% endresponse %}
+    {% response %}איך היו היחסים שלך עם אמא שלך? {% endresponse %}
+    {% response %}מה אתה מרגיש לגבי אמא שלך? {% endresponse %}
+    {% response %}איך זה קשור לתחושות שלך היום? {% endresponse %}
+    {% response %}קשרי משפחה טובים הם חשובים. {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) אבא (.*) {% endclient %}
+    {% response %}ספר לי עוד על אביך. {% endresponse %}
+    {% response %}איך אביך גרם לך להרגיש? {% endresponse %}
+    {% response %}מה אתה מרגיש כלפי אביך? {% endresponse %}
+    {% response %}האם היחסים שלך עם אביך קשורים לתחושות שלך היום? {% endresponse %}
+    {% response %}האם יש לך בעיה להראות חיבה עם המשפחה שלך? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) ילד (.*) {% endclient %}
+    {% response %}האם היו לך חברים קרובים בילדותך? {% endresponse %}
+    {% response %}מהו זיכרון הילדות המועדף עליך? {% endresponse %}
+    {% response %}האם אתה זוכר חלומות או סיוטים מילדות? {% endresponse %}
+    {% response %}האם הילדים האחרים הקניטו אותך? {% endresponse %}
+    {% response %}איך לדעתך חוויות הילדות שלך קשורות לתחושות שלך היום? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}(.*) \? {% endclient %}
+    {% response %}למה אתה שואל את זה? {% endresponse %}
+    {% response %}אנא שקול אם תוכל לענות על שאלה משלך. {% endresponse %}
+    {% response %}אולי התשובה טמונה בתוכך? {% endresponse %}
+    {% response %}מדוע אתה לא אומר לי? {% endresponse %}
+{% endblock %}
+
+{% block %}
+    {% client %}אני הולך {% endclient %}
+    {% response %}תודה שדיברת איתי. {% endresponse %}
+    {% response %}להתראות. {% endresponse %}
+    {% response %}תודה. שיהיה לך יום טוב! {% endresponse %}
+{% endblock %}
+
+{% response %}אנא ספר לי עוד. {% endresponse %}
+{% response %}בואו נשנה מעט את המיקוד ... ספר לי על המשפחה שלך. {% endresponse %}
+{% response %}האם תוכל לפרט על כך? {% endresponse %}
+{% response %}מדוע אתה אומר ש%0? {% endresponse %}
+{% response %}אני רואה. {% endresponse %}
+{% response %}מעניין מאוד. {% endresponse %}
+{% response %}%0. {% endresponse %}
+{% response %}אני רואה. ומה זה אומר לך? {% endresponse %}
+{% response %}איך זה גורם לך להרגיש? {% endresponse %}
+{% response %}איך אתה מרגיש כשאתה אומר את זה? {% endresponse %}
