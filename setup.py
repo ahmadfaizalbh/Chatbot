@@ -2,7 +2,8 @@
 
 from os.path import join, dirname, abspath
 from runpy import run_path
-from setuptools import setup
+from setuptools import setup, Extension
+from Cython.Build import cythonize
 
 
 version = run_path(join(abspath(dirname(__file__)), 'chatbot', 'version.py'))
@@ -58,5 +59,21 @@ setup(
     ],
     install_requires=[
           'requests',
-      ]
+          'cython',
+      ],
+    setup_requires=[
+        'cython',
+    ],
+    ext_modules=cythonize([
+        Extension(
+            name="chatbot.AI.engine",
+            sources=["chatbot/AI/engine.pyx", "chatbot/AI/c_matrix.c"],
+            include_dirs=["chatbot/AI"],
+        ),
+        Extension(
+            name="chatbot.AI.lstm",
+            sources=["chatbot/AI/lstm.pyx", "chatbot/AI/c_matrix.c"],
+            include_dirs=["chatbot/AI"],
+        )
+    ])
 )

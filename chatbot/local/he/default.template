@@ -83,12 +83,7 @@
     {% response %}יכול להיות שאני %1 מה אתה חושב? {% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}מה (.*) {% endclient %}
-    {% response %}מדוע אתה שואל? {% endresponse %}
-    {% response %}כיצד תשובה לכך תעזור לך? {% endresponse %}
-    {% response %}מה אתה חושב? {% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}כיצד (.*) {% endclient %}
@@ -274,13 +269,7 @@
     {% response %}איך לדעתך חוויות הילדות שלך קשורות לתחושות שלך היום? {% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}(.*) \? {% endclient %}
-    {% response %}למה אתה שואל את זה? {% endresponse %}
-    {% response %}אנא שקול אם תוכל לענות על שאלה משלך. {% endresponse %}
-    {% response %}אולי התשובה טמונה בתוכך? {% endresponse %}
-    {% response %}מדוע אתה לא אומר לי? {% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}אני הולך {% endclient %}
@@ -289,13 +278,3 @@
     {% response %}תודה. שיהיה לך יום טוב! {% endresponse %}
 {% endblock %}
 
-{% response %}אנא ספר לי עוד. {% endresponse %}
-{% response %}בואו נשנה מעט את המיקוד ... ספר לי על המשפחה שלך. {% endresponse %}
-{% response %}האם תוכל לפרט על כך? {% endresponse %}
-{% response %}מדוע אתה אומר ש%0? {% endresponse %}
-{% response %}אני רואה. {% endresponse %}
-{% response %}מעניין מאוד. {% endresponse %}
-{% response %}%0. {% endresponse %}
-{% response %}אני רואה. ומה זה אומר לך? {% endresponse %}
-{% response %}איך זה גורם לך להרגיש? {% endresponse %}
-{% response %}איך אתה מרגיש כשאתה אומר את זה? {% endresponse %}

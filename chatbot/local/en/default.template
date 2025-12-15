@@ -83,12 +83,7 @@
     {% response %}I may be %1 -- what do you think?{% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}What (.*){% endclient %}
-    {% response %}Why do you ask?{% endresponse %}
-    {% response %}How would an answer to that help you?{% endresponse %}
-    {% response %}What do you think?{% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}How (.*){% endclient %}
@@ -274,13 +269,7 @@
     {% response %}How do you think your childhood experiences relate to your feelings today?{% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}(.*)\?{% endclient %}
-    {% response %}Why do you ask that?{% endresponse %}
-    {% response %}Please consider whether you can answer your own question.{% endresponse %}
-    {% response %}Perhaps the answer lies within yourself?{% endresponse %}
-    {% response %}Why do not you tell me?{% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}quit{% endclient %}
@@ -289,13 +278,4 @@
     {% response %}Thank you. Have a good day!{% endresponse %}
 {% endblock %}
 
-{% response %}Please tell me more.{% endresponse %}
-{% response %}Let's change focus a bit... Tell me about your family.{% endresponse %}
-{% response %}Can you elaborate on that?{% endresponse %}
-{% response %}Why do you say that %0?{% endresponse %}
-{% response %}I see.{% endresponse %}
-{% response %}Very interesting.{% endresponse %}
-{% response %}%0.{% endresponse %}
-{% response %}I see.  And what does that tell you?{% endresponse %}
-{% response %}How does that make you feel?{% endresponse %}
-{% response %}How do you feel when you say that?{% endresponse %}
+

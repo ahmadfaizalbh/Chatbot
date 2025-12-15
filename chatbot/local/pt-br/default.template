@@ -82,12 +82,7 @@
     {% response %}Posso ser %1 - o que você acha?{% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}(O que é|Qual|Que).*{% endclient %}
-    {% response %}Por que você pergunta?{% endresponse %}
-    {% response %}Como uma resposta a isso o ajudaria?{% endresponse %}
-    {% response %}O que você acha?{% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}(Como|E se) (.*){% endclient %}
@@ -273,13 +268,7 @@
     {% response %}Como você acha que suas experiências de infância se relacionam com seus sentimentos hoje? {% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}(.*)\?{% endclient %}
-    {% response %}Por que você pergunta isso? {% endresponse %}
-    {% response %}Considere se você pode responder sua própria pergunta. {% endresponse %}
-    {% response %}Talvez a resposta esteja dentro de você? {% endresponse %}
-    {% response %}Por que você não me diz? {% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}saiu de{% endclient %}
@@ -288,14 +277,5 @@
     {% response %}Obrigado. Tenha um bom dia! {% endresponse %}
 {% endblock %}
 
-{% response %}Diga-me mais. {% endresponse %}
-{% response %}Vamos mudar um pouco o foco ... Conte-me sobre sua família. {% endresponse %}
-{% response %}Você pode explicar melhor? {% endresponse %}
-{% response %}Por que você diz isso% 0? {% endresponse %}
-{% response %}Entendo. {% endresponse %}
-{% response %}Muito interessante. {% endresponse %}
-{% response %}%0. {% endresponse %}
-{% response %}Entendo. E o que isso diz a você? {% endresponse %}
-{% response %}Como você se sente? {% endresponse %}
-{% response %}Como você se sente quando diz isso? {% endresponse %}
+
 

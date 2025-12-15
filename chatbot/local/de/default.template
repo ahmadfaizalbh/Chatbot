@@ -83,12 +83,7 @@
     {% response %}Vielleicht bin ich %1 -- Was denkst du?{% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}Was (.*){% endclient %}
-    {% response %}Warum fragst du?{% endresponse %}
-    {% response %}Wie würde dir eine Antwort darauf helfen?{% endresponse %}
-    {% response %}Was denkst du?{% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}Wie (.*){% endclient %}
@@ -272,13 +267,7 @@
     {% response %}Wie glaubst du wirkt sich deine Kindheit auf deine heutigen Gefühle aus?{% endresponse %}
 {% endblock %}
 
-{% block %}
-    {% client %}(.*)\?{% endclient %}
-    {% response %}Warum fragst du das?{% endresponse %}
-    {% response %}Bitte beantworte dir diese Frage selbst.{% endresponse %}
-    {% response %}Vielleicht liegt die Antwort auf diese Frage tief in deinem Inneren verborgen?{% endresponse %}
-    {% response %}Warum erzählst du mir das nicht?{% endresponse %}
-{% endblock %}
+
 
 {% block %}
     {% client %}Ende{% endclient %}
@@ -287,13 +276,4 @@
     {% response %}Danke, hab einen schönen Tag!{% endresponse %}
 {% endblock %}
 
-{% response %}Please tell me more.{% endresponse %}
-{% response %}Let's change focus a bit... Tell me about your family.{% endresponse %}
-{% response %}Can you elaborate on that?{% endresponse %}
-{% response %}Why do you say that %0?{% endresponse %}
-{% response %}I see.{% endresponse %}
-{% response %}Very interesting.{% endresponse %}
-{% response %}%0.{% endresponse %}
-{% response %}I see.  And what does that tell you?{% endresponse %}
-{% response %}How does that make you feel?{% endresponse %}
-{% response %}How do you feel when you say that?{% endresponse %}
+

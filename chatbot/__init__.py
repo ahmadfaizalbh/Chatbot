@@ -9,6 +9,9 @@ from .spellcheck import SpellChecker
 from . import version
 from . import mapper
 from .constants import FIRST_QUESTIONS, TERMINATES, LANGUAGE_SUPPORT  # noqa: F401
+from .AI import Sequential, Dense, Activation, SGD, SimpleTokenizer, TextLoader, OnlineTrainer, Trainer, MSE
+from os import path
+import os
 
 try:
     from urllib import quote
@@ -174,6 +177,154 @@ class Chat(object):
         self.call = call
         self._topic = Topic(self._pairs.keys)
         self._api = self.__process_api(api)
+        self.__init_ai()
+
+    def __init_ai(self):
+        self.ai_tokenizer = SimpleTokenizer()
+        self.ai_window_size = 5
+        self.ai_vocab_size = 200 # Small vocab for "light" demo
+        # Build simple model: Input -> Hidden -> Output
+        input_dim = self.ai_window_size * self.ai_vocab_size
+        hidden_dim = 64
+        
+        self.ai_model = Sequential()
+        self.ai_model.add(Dense(input_dim, hidden_dim))
+        self.ai_model.add(Activation("sigmoid"))
+        self.ai_model.add(Dense(hidden_dim, self.ai_vocab_size))
+        self.ai_model.add(Activation("softmax"))
+        
+        self.ai_optimizer = SGD(learning_rate=0.1)
+        self.ai_trainer = OnlineTrainer(self.ai_model, self.ai_optimizer)
+        self.ai_batch_trainer = Trainer(self.ai_model, self.ai_optimizer)
+        
+        # Load existing if available (Mock logic, requires serialization impl)
+        # self.ai_tokenizer.load(...)
+        
+        # Pre-seed tokenizer with local words.txt if available
+        words_path = path.join(self.local_path, "en", "words.txt") # Assuming 'en' for now or use self.language?
+        # self.local_path is set in __init__
+        # Let's use 'words.txt' from current language if possible
+        # language is not passed to __init_ai but is available in self.spell_checker.language?
+        # or just hardcode assuming 'en' or try to find it.
+        # Actually __init__ has language.
+        
+        # We can just try to load a known large text to init vocab or just rely on dynamic growth.
+        # But if tokenizer is empty, any input is ignored. 
+        # So let's simple add a check in ai_converse.
+        
+    def ai_converse(self, message):
+        # AI-based conversation logic
+        # 1. Tokenize input
+        # 2. Predict next words?
+        # For a chatbot, usually we want to map Query -> Response.
+        # But our simple AI is Next-Word.
+        # Let's try to generate a response continuing the message?
+        # Or if "self learn" implies mapping input to output directly?
+        # Let's assume Generative: Generate until punctuation.
+        
+        response_text = ""
+        current_text = message
+        
+        # Limit generation length
+        for _ in range(20):
+            # Pad/Truncate to window size
+            seqs = self.ai_tokenizer.texts_to_sequences([current_text])
+            if not seqs or not seqs[0]:
+                break
+            input_seq = seqs[0][-self.ai_window_size:]
+            while len(input_seq) < self.ai_window_size:
+                input_seq = [0] + input_seq # Pad left
+            
+            # Predict
+            # Update One-Hot construction to match Trainer logic
+            input_data = []
+            for idx in input_seq:
+                vec = [0.0] * self.ai_vocab_size
+                if idx < self.ai_vocab_size:
+                    vec[idx] = 1.0
+                input_data.extend(vec)
+            
+            from chatbot.AI.engine import PyMatrix
+            # Actually PyMatrix is checked in __init__.py imports
+            
+            input_mat = PyMatrix.from_list([input_data])
+            pred = self.ai_model.predict(input_mat)
+            
+            # Sample from probability distribution
+            probs = pred.to_list()[0]
+            # Greedy argmax
+            max_prob = -1
+            max_idx = 0
+            for k, p in enumerate(probs):
+                if p > max_prob:
+                    max_prob = p
+                    max_idx = k
+            
+            word = self.ai_tokenizer.index_word.get(max_idx, "")
+            if not word:
+                break
+            
+            response_text += " " + word
+            current_text += " " + word
+            
+        if not response_text.strip():
+            return "I haven't been trained on enough data to answer that yet. Please train me!"
+            
+        return response_text.strip()
+
+    def train(self, source, epochs=10):
+        # Source can be file path, url, or string
+        loader = TextLoader(self.ai_tokenizer)
+        if source.startswith("http"):
+            loader.load_from_url(source)
+        elif path.exists(source):
+            loader.load_from_file(source)
+        else:
+            loader.load_from_string(source)
+            
+        X, Y = loader.prepare_data(self.ai_window_size)
+        
+        # Resize model if vocab grew? 
+        # Our implementation has fixed size layers based on init vocab size.
+        # This is a limitation of the "Simple" implementation. 
+        # We will assume vocab doesn't restart but fits in pre-allocated size logic?
+        # Ideally we rebuild model if vocab changes drastically, but weights would be lost.
+        # For this demo, we assume fit_on_text respects current mapping and maybe ignores new words if out of bounds?
+        # No, tokenizer adds new words. 
+        # We should check if vocab exceeds self.ai_vocab_size and warn or resize (complex).
+        # We'll stick to fixed size for "easy setup" stability, ignoring > vocab_size.
+        
+        # Filter X, Y to fit vocab
+        X_filtered = []
+        Y_filtered = []
+        for x, y in zip(X, Y):
+            if all(val < self.ai_vocab_size for val in x) and y < self.ai_vocab_size:
+                X_filtered.append(x)
+                Y_filtered.append(y)
+                
+        self.ai_batch_trainer.fit(X_filtered, Y_filtered, self.ai_vocab_size, epochs)
+        print("Training complete.")
+
+    def learn_response(self, query, response):
+        # Online learn: Train model that 'query' -> 'response'
+        # Concatenate "query response" and train on that sequence.
+        full_text = query + " " + response
+        self.ai_tokenizer.fit_on_text(full_text) # Might add new words
+        
+        seqs = self.ai_tokenizer.texts_to_sequences([full_text])[0]
+        # Train simple windows
+        for i in range(len(seqs) - 1):
+            # Small window leading up to target
+            target = seqs[i+1]
+            if target >= self.ai_vocab_size: continue
+            
+            window = seqs[max(0, i - self.ai_window_size + 1) : i+1]
+            # Pad
+            while len(window) < self.ai_window_size:
+                window = [0] + window
+                
+            loss = self.ai_trainer.update(window, target, self.ai_vocab_size)
+        return "Learned."
 
     @staticmethod
     def __process_api(api):
@@ -878,7 +1029,7 @@ class Chat(object):
         try:
             return self.__response_on_topic(session, text, previous_text, text_correction, current_topic)
         except ValueError:
-            return "Sorry I couldn't find anything relevant"
+            return self.ai_converse(text)
 
     def __substitute_in_learn(self, session, pair, match, parent_match):
         return tuple((self.__substitute_in_learn(session, i, match, parent_match)
