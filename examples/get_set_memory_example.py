@@ -4,13 +4,13 @@ import os
 
 @register_call("increment_count")
 def memory_get_set_example(session, query):
-    name=query.strip().lower()
+    name = query.strip().lower()
     # Get memory
     old_count = session.memory.get(name, '0')
     new_count = int(old_count) + 1
     # Set memory
-    session.memory[name]=str(new_count)
-    return f"count  {new_count}"
+    session.memory[name] = str(new_count)
+    return f"count {new_count}"
 
 
 chat = Chat(os.path.join(os.path.dirname(os.path.abspath(__file__)), "get_set_memory_example.template"))

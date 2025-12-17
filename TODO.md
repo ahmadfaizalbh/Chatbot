@@ -14,7 +14,7 @@
 - [x] Multiple chat message Regex per intend block support 
 - [x] Multiple previous message Ragex per intend block support 
 - [x] Language switch support (localization)
-- [ ] Desktop UI
+- [x] Desktop UI
 - [x] [Web UI](https://github.com/ahmadfaizalbh/WebBot)
 - [ ] Rich Text Respose Support in template
 - [ ] Response Card Support in templates
@@ -39,7 +39,7 @@
   - [ ] Hindi
   - [ ] Arabic
   - [ ] others
-- [ ] Unit Tests
+- [x] Unit Tests
 - [ ] Voice cammand support
 - [ ] Code Embedded Templates (macros) support 
 - [ ] Non python callback function registration support (integration of java, c#, nodejs, Ruby, C/C++, etc.)

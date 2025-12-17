@@ -1,0 +1,7 @@
+.eggs/
+.vscode/
+build/
+CHANGELOG.md
+*.pyd
+dummy_train_small.txt
+test_book_large.txt

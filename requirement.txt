@@ -1,1 +1,2 @@
-wikipedia
+requests>=2.25.0
+ollama>=0.1.0

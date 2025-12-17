@@ -8,10 +8,10 @@ class SpellChecker:
 
     def __init__(self, local_path, language='en'):
         try:
-            self.WORDS = Counter(self.words(open(path.join(
-                local_path, language, "words.txt"), encoding='utf-8').read()))
+            with open(path.join(local_path, language, "words.txt"), encoding='utf-8') as f:
+                self.WORDS = Counter(self.words(f.read()))
         except FileNotFoundError:
-            warn("words.txt for language `{}` not found in `{}`".format(language, local_path),
+            warn(f"words.txt for language `{language}` not found in `{local_path}`",
                  ResourceWarning)
             self.WORDS = Counter()
         self.total_word_count = sum(self.WORDS.values())

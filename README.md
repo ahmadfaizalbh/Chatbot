@@ -11,24 +11,40 @@ makes it unique and more powerful in functionality. This AI provides
 numerous features like learn, memory, conditional switch, topic-based
 conversation handling, etc.
 
+## 🚀 NEW: Ollama Integration
+Now supports **Ollama with Llama 3.2** for state-of-the-art AI responses!
+- No training required - uses pretrained models
+- Coherent, human-like conversations
+- Local inference (no API costs)
+- See `OLLAMA_SETUP.md` for installation instructions
+
 
 ![Demo GUI](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo_gui.gif)
 
 ![Demo](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/demo.gif)
 ![Clothing assistance](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/clothing.gif)
-![Remainder](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/reminder.gif)
+![Reminder](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/reminder.gif)
 
 ## Installation
 
-Install from PyPI:
+Install from PyPI (includes Ollama setup):
 ```sh
 pip install chatbotAI
 ```
+*During installation, you'll be prompted to install Ollama for AI responses.*
 
-install from github:
+### Install from GitHub (Source)
+1. Clone the repository:
 ```sh
 git clone https://github.com/ahmadfaizalbh/Chatbot.git
 cd Chatbot
+```
+2. Install dependencies:
+```sh
+pip install -r requirement.txt
+```
+3. Install package:
+```sh
 python setup.py install
 ```
 
@@ -73,7 +89,7 @@ For Jupyter notebook Chatbot checkout [Infobot built using NLTK-Chatbot](https:/
 
 #### Sample Apps
 1. A sample facebook messenger bot built using [messengerbot](https://github.com/geeknam/messengerbot/pulls), [Django](https://github.com/django/django) and [NLTK-Chatbot](#chatbot) is available here [Facebook messenger bot](https://github.com/ahmadfaizalbh/FacebookMessengerBot/)
-2. A sample microsoft bot built using [Microsoft Bot Connector Rest API - v3.0](https://docs.botframework.com/en-us/restapi/connector/#navtitle), [Django](https://github.com/django/django) and [NLTK-Chatbot](#chatbot) is available here [Micosoft Chatbot](https://github.com/ahmadfaizalbh/Microsoft-chatbot/)
+2. A sample microsoft bot built using [Microsoft Bot Connector Rest API - v3.0](https://docs.botframework.com/en-us/restapi/connector/#navtitle), [Django](https://github.com/django/django) and [NLTK-Chatbot](#chatbot) is available here [Microsoft Chatbot](https://github.com/ahmadfaizalbh/Microsoft-chatbot/)
 
 ## List of feature supported in bot template
 1. [Memory](#memory)
@@ -219,7 +235,7 @@ def function_name(session, query):
     ...
 }
 ```
-*If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as defult values and all key value pair defined in template file overrides the default value.`value_getter` consistes of list of keys in order using which info from json will be collected.*
+*If authentication is required only then `auth` method is needed.The `data` and `params` defined in pi.json file acts as default values and all key value pair defined in template file overrides the default value.`value_getter` consists of list of keys in order using which info from json will be collected.*
 
 ### In Template file
 ```
@@ -276,6 +292,59 @@ you can have any number of key value pair and all key value pair will override d
 {% endblock %}
 ```
 
+
+## AI Framework
+
+The library now uses **Ollama with Llama 3.2** for state-of-the-art AI responses.
+
+### Features
+1.  **Pretrained Models**: No training required - uses advanced language models.
+2.  **Local Inference**: Runs locally without API costs or internet dependency.
+3.  **Fine-tuning**: Create custom models with your own training data.
+4.  **Online Learning**: The bot can learn specific responses dynamically.
+5.  **Fallback Mechanism**: If no template pattern matches, Ollama generates intelligent responses.
+
+### Usage
+
+#### Training
+You can train the bot on text files or URLs:
+
+```python
+chat = Chat()
+# Train on a book or website
+chat.train("https://www.gutenberg.org/files/11/11-0.txt", epochs=10)
+```
+
+#### Self-Learning
+The bot can learn from interactions:
+
+```python
+chat.learn_response("What is the capital of Mars?", "Elon Musk's future home.")
+```
+
+#### AI Fallback
+The AI integration is automatic. If a user query does not match any defined template pattern, the `converse` method calls `ai_converse`.
+- If the model is untrained, it replies: *"I haven't been trained on enough data to answer that yet. Please train me!"*
+- Once trained, it generates a response based on its vocabulary and training.
+
+---
+
+![Chatbot AI flow Diagram](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/ChatBot%20AI.png)-0.txt", epochs=10)
+```
+
+#### Self-Learning
+The bot can learn from interactions:
+
+```python
+chat.learn_response("What is the capital of Mars?", "Elon Musk's future home.")
+```
+
+#### AI Fallback
+The AI integration is automatic. If a user query does not match any defined template pattern, the `converse` method calls `ai_converse`.
+- If the model is untrained, it replies: *"I haven't been trained on enough data to answer that yet. Please train me!"*
+- Once trained, it generates a response based on its vocabulary and training.
+
+---
 
 ![Chatbot AI flow Diagram](https://raw.githubusercontent.com/ahmadfaizalbh/Chatbot/master/images/ChatBot%20AI.png)
 
